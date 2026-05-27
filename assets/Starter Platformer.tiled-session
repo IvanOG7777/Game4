@@ -1,0 +1,52 @@
+{
+    "activeFile": "platformer-level-1.tmj",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "fileStates": {
+        "": {
+            "scaleInDock": 1.5,
+            "scaleInEditor": 4
+        },
+        "platformer-level-1.tmj": {
+            "scale": 1,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 534,
+                "y": 255
+            }
+        },
+        "platformer-level-1.tmj#kenny_tilemap_background": {
+            "scaleInDock": 1.5
+        },
+        "platformer-level-1.tmj#kenny_tilemap_dungeon": {
+            "scaleInDock": 1.5,
+            "scaleInEditor": 1
+        },
+        "platformer-level-1.tmj#kenny_tilemap_farm": {
+            "scaleInDock": 1
+        },
+        "platformer-level-1.tmj#kenny_tilemap_packed": {
+            "scaleInDock": 1.5
+        }
+    },
+    "last.imagePath": "C:/Users/elder/OneDrive/Desktop/CMPM120/Game3/assets",
+    "map.height": 25,
+    "map.lastUsedFormat": "json",
+    "map.tileHeight": 18,
+    "map.tileWidth": 18,
+    "map.width": 40,
+    "openFiles": [
+        "platformer-level-1.tmj"
+    ],
+    "project": "Starter Platformer.tiled-project",
+    "property.type": "bool",
+    "recentFiles": [
+        "platformer-level-1.tmj"
+    ],
+    "tileset.embedInMap": true,
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
+}
