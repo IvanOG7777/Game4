@@ -1,11 +1,11 @@
 class Valhalla extends Phaser.Scene {
     constructor() {
-        super("ValhallaScene");
+        super("valhallaScene");
 
         this.my = {sprite: {} };
     }
 
-    Init() {
+    init() {
         this.physics.world.gravity.y = 1500;
         this.ACCELERATION = 250;
         this.DRAG = 800;
