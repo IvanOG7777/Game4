@@ -1,6 +1,7 @@
 import Load from "./Scenes/Load.js";
 import Init from "./Scenes/Init.js";
 import Overworld from "./Scenes/Overworld.js";
+import Valhalla from "./Scenes/Valhalla.js";
 
 "use strict"
 
@@ -22,7 +23,7 @@ let config = {
     },
     width: 1440,
     height: 900,
-    scene: [Load, Init, Overworld]
+    scene: [Load, Init, Overworld, Valhalla]
 }
 
 let my = {sprite: {}, text: {}};

@@ -801,7 +801,7 @@ class Overworld extends Phaser.Scene {
             my.vfx.walking.stop();
             my.sounds.music.stop();
             my.sounds.loseSound.play();
-            this.showEndScreen("GAME OVER :(", "#ff002b");
+            this.scene.start("valhallaScene");
             return;
         }
         
