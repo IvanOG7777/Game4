@@ -82,7 +82,7 @@ class Overworld extends Phaser.Scene {
         my.sounds = {};
         my.sounds.footSteps = this.sound.add("footSteps", {loop: true});
         my.sounds.potionThrow = this.sound.add("potionThrow");
-        my.sounds.potionImpact = this.sound.add("potionImpact")
+        my.sounds.potionImpact = this.sound.add("potionImpact");
         my.sounds.jump = this.sound.add("jumpSound");
         my.sounds.coinCollect = this.sound.add("coinCollect");
         my.sounds.hurtSound = this.sound.add("hurtSound");
@@ -99,7 +99,7 @@ class Overworld extends Phaser.Scene {
         my.sounds.loseSound = this.sound.add("loseSound");
         my.sounds.healthPickUp = this.sound.add("healthPickUp");
         my.sounds.music;
-        
+
         // chat
         this.musicKeys = [
             "music1",
@@ -112,8 +112,8 @@ class Overworld extends Phaser.Scene {
         // end of chat
 
 
-        my.sounds.music = this.sound.add(randomMusic, { loop: true, volume: 0.4 });
-        
+        my.sounds.music = this.sound.add(randomMusic, {loop: true, volume: 0.4});
+
         my.sounds.music.play();
 
         // init game keys
@@ -164,8 +164,10 @@ class Overworld extends Phaser.Scene {
             collides: true
         })
 
-        this.waterTiles = this.backGround.filterTiles(tile => {return tile.properties.water == true;});
-        let bubbleGraphics = this.make.graphics({ x: 0, y: 0, add: false });
+        this.waterTiles = this.backGround.filterTiles(tile => {
+            return tile.properties.water == true;
+        });
+        let bubbleGraphics = this.make.graphics({x: 0, y: 0, add: false});
         bubbleGraphics.fillStyle(0xffffff, 1);
         bubbleGraphics.fillCircle(4, 4, 4);
         bubbleGraphics.generateTexture("bubble", 8, 8);
@@ -175,15 +177,14 @@ class Overworld extends Phaser.Scene {
 
             this.add.particles(tile.getCenterX(), tile.getCenterY(), "bubble", {
                 lifespan: 1200,
-                speedY: { min: -20, max: -60 },
-                speedX: { min: -10, max: 10 },
-                scale: { start: 0.7, end: 0 },
-                alpha: { start: 0.8, end: 0 },
+                speedY: {min: -20, max: -60},
+                speedX: {min: -10, max: 10},
+                scale: {start: 0.7, end: 0},
+                alpha: {start: 0.8, end: 0},
                 frequency: 800,
                 quantity: 1
             });
         }
-
 
 
         // animation for coins
@@ -471,347 +472,383 @@ class Overworld extends Phaser.Scene {
 
     // functiom to reset to init
     resetGameStateVariables() {
-            this.playerHealth = 100;
-            this.playerHitDamage = 5;
-            this.currentWeapon = null;
-            this.nextPlayerHitTime = 0;
-            this.playerHitSpeed = 1000;
-            this.playerAlive = true;
+        this.playerHealth = 100;
+        this.playerHitDamage = 5;
+        this.currentWeapon = null;
+        this.nextPlayerHitTime = 0;
+        this.playerHitSpeed = 1000;
+        this.playerAlive = true;
 
-            this.heartArray = [];
-            this.evilWizardPotionArray = [];
-            this.evilWizardArray = [];
-            this.spiderArray = [];
-            this.orcArray = [];
-            this.enemyChests = [];
-            this.enemies = [];
+        this.heartArray = [];
+        this.evilWizardPotionArray = [];
+        this.evilWizardArray = [];
+        this.spiderArray = [];
+        this.orcArray = [];
+        this.enemyChests = [];
+        this.enemies = [];
 
-            this.keysCollected = 0;
-            this.coinsCollected = 0;
+        this.keysCollected = 0;
+        this.coinsCollected = 0;
 
-            this.heldWeapon = null;
-            this.nearWeapon = null;
+        this.heldWeapon = null;
+        this.nearWeapon = null;
 
-            this.endText = null;
-            this.resetText = null;
+        this.endText = null;
+        this.resetText = null;
 
+        if (this.my?.sounds?.music) {
+            this.my.sounds.music.stop();
+        }
+
+        if (this.my?.sounds?.footSteps) this.my.sounds.footSteps.stop();
+    }
+
+    // function to show texts when game is won or lost
+    showEndScreen(message, color) {
+        if (!this.endText) {
+            this.endText = this.add.text(this.game.config.width / 2, this.game.config.height / 2 - 200, message, {
+                fontSize: "50px",
+                fill: color,
+            }).setOrigin(0.5).setScrollFactor(0);
+        }
+
+        if (!this.resetText) {
+            this.resetText = this.add.text(this.game.config.width / 2, this.game.config.height / 2 - 100, "Press R to Restart", {
+                fontSize: "50px",
+                fill: color,
+            }).setOrigin(0.5).setScrollFactor(0);
+        }
+
+    }
+
+    // function that call the above two when it runs
+    reset() {
+        if (Phaser.Input.Keyboard.JustDown(this.rKey)) {
             if (this.my?.sounds?.music) {
                 this.my.sounds.music.stop();
             }
-
-            if (this.my?.sounds?.footSteps) this.my.sounds.footSteps.stop();
+            this.resetGameStateVariables();
+            this.scene.start("initScene");
         }
-
-        // function to show texts when game is won or lost
-        showEndScreen(message, color) {
-            if (!this.endText) {
-                this.endText = this.add.text(this.game.config.width / 2, this.game.config.height / 2 - 200, message, {
-                    fontSize: "50px",
-                    fill: color,
-                }).setOrigin(0.5).setScrollFactor(0);
-            }
-
-            if (!this.resetText) {
-                this.resetText = this.add.text(this.game.config.width / 2, this.game.config.height / 2 - 100, "Press R to Restart", {
-                    fontSize: "50px",
-                    fill: color,
-                }).setOrigin(0.5).setScrollFactor(0);
-            }
-            
-        }
-        
-        // function that call the above two when it runs
-        reset() {
-            if (Phaser.Input.Keyboard.JustDown(this.rKey)) {
-                if (this.my?.sounds?.music) {
-                    this.my.sounds.music.stop();
-                }
-                this.resetGameStateVariables();
-                this.scene.start("initScene");
-            }
-        }
+    }
 
     update(time, deltaTime) {
 
         // only play when player is alive
         if (this.playerAlive == true) {
 
-        let cursors = this.cursors;
-        let my = this.my;
+            let cursors = this.cursors;
+            let my = this.my;
 
-        let playerTile = this.backGround.getTileAtWorldXY(
-            my.sprite.player.x,
-            my.sprite.player.y,
-            true
-        );
+            let playerTile = this.backGround.getTileAtWorldXY(
+                my.sprite.player.x,
+                my.sprite.player.y,
+                true
+            );
 
-        if (playerTile && playerTile.properties.water == true && time >= this.nextWaterDamageTime) {
-            this.playerHealth -= this.waterDamage;
-            this.health.setText("Health: " + Math.ceil(this.playerHealth));
-            my.sounds.hurtSound.play();
+            if (playerTile && playerTile.properties.water == true && time >= this.nextWaterDamageTime) {
+                this.playerHealth -= this.waterDamage;
+                this.health.setText("Health: " + Math.ceil(this.playerHealth));
+                my.sounds.hurtSound.play();
 
-            this.nextWaterDamageTime = time + this.waterDamageDelay;
-        }
-
-        let grounded = my.sprite.player.body.blocked.down;
-
-        this.nearWeapon = null;
-        // loop through weapons
-        for (let weapon of this.weapons) {
-            // continue if we are already holding weapon
-            if (weapon === this.heldWeapon) continue;
-            if (!weapon.body.enable) continue;
-
-            // get distance between weapon and player
-            let dist = Phaser.Math.Distance.Between(my.sprite.player.x, my.sprite.player.y, weapon.x, weapon.y);
-
-            // if dis is less than 40 we can equipd it
-            if (dist < 40) {
-                this.nearWeapon = weapon;
-                break;
-            }
-        }
-
-        if (cursors.left.isDown) {
-            my.sprite.player.body.setVelocityX(-this.ACCELERATION);
-
-            my.sprite.player.setFlip(true, false);
-
-            my.vfx.walking.startFollow(my.sprite.player, my.sprite.player.displayWidth / 2 - 10, my.sprite.player.displayHeight / 2 - 5, false);
-
-            my.vfx.walking.setParticleSpeed(this.PARTICLE_VELOCITY, 0);
-
-            if (grounded) {
-                my.vfx.walking.start();
-                if (!my.sounds.footSteps.isPlaying) {
-                    my.sounds.footSteps.play();
-                }
+                this.nextWaterDamageTime = time + this.waterDamageDelay;
             }
 
-        } else if (cursors.right.isDown) {
-            my.sprite.player.body.setVelocityX(this.ACCELERATION);
-
-            my.sprite.player.resetFlip();
-
-            my.vfx.walking.startFollow(my.sprite.player, my.sprite.player.displayWidth / 2 - 10, my.sprite.player.displayHeight / 2 - 5, false);
-
-            my.vfx.walking.setParticleSpeed(this.PARTICLE_VELOCITY, 0);
-
-            if (grounded) {
-                my.vfx.walking.start();
-                if (!my.sounds.footSteps.isPlaying) {
-                    my.sounds.footSteps.play();
-                }
-            }
-
-        } else {
-            my.sprite.player.body.setVelocityX(0);
-            my.sprite.player.body.setDragX(this.DRAG);
-            my.vfx.walking.stop();
-            my.sounds.footSteps.stop();
-        }
-
-        if (!grounded) {
-            my.sounds.footSteps.stop();
-        }
-
-        // player jump
-        // note that we need body.blocked rather than body.touching b/c the former applies to tilemap tiles and the latter to the "ground"
-        if (!my.sprite.player.body.blocked.down) {
-        }
-        if (my.sprite.player.body.blocked.down && Phaser.Input.Keyboard.JustDown(cursors.up)) {
-            my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY);
-            my.sounds.jump.play();
-        }
-
-        // when player is near a weapon and presses e
-        if (Phaser.Input.Keyboard.JustDown(this.equipKey) && this.nearWeapon) {
-
-            let newWeapon = this.nearWeapon;
-
-            if (this.heldWeapon) {
-                this.heldWeapon.body.enable = true;
-                this.heldWeapon.body.reset(this.heldWeapon.x, this.heldWeapon.y);
-            }
-
-            this.heldWeapon = newWeapon;
-            this.heldWeapon.body.enable = false;
+            let grounded = my.sprite.player.body.blocked.down;
 
             this.nearWeapon = null;
+            // loop through weapons
+            for (let weapon of this.weapons) {
+                // continue if we are already holding weapon
+                if (weapon === this.heldWeapon) continue;
+                if (!weapon.body.enable) continue;
 
-            this.currentWeapon = this.heldWeapon.name;
+                // get distance between weapon and player
+                let dist = Phaser.Math.Distance.Between(my.sprite.player.x, my.sprite.player.y, weapon.x, weapon.y);
 
-            // set player damage to respective item
-            // damage values
-            if (this.currentWeapon == "dagger") {
-                this.playerHitDamage = this.dagerDamage;
-                this.playerHitSpeed = this.dagerSpeed;
-                this.hitSound = my.sounds.daggerSound;
+                // if dist is less than 40 we can equip it
+                if (dist < 40) {
+                    this.nearWeapon = weapon;
+                    break;
+                }
             }
 
-            if (this.currentWeapon == "sword") {
-                this.playerHitDamage = this.swordDamage;
-                this.playerHitSpeed = this.swordSpeed;
-                this.hitSound = my.sounds.swordSound;
-            }
+            if (cursors.left.isDown) {
+                my.sprite.player.body.setVelocityX(-this.ACCELERATION);
 
-            if (this.currentWeapon == "axe") {
-                this.playerHitDamage = this.axeDamage;
-                this.playerHitSpeed = this.axeSpeed;
-                this.hitSound = my.sounds.axeSound;
-            }
-        }
+                my.sprite.player.setFlip(true, false);
 
-        if (this.heldWeapon) {
+                my.vfx.walking.startFollow(my.sprite.player, my.sprite.player.displayWidth / 2 - 10, my.sprite.player.displayHeight / 2 - 5, false);
 
-            // if facing right
-            if (my.sprite.player.flipX == true) {
-                // facing left
-                this.heldWeapon.x = my.sprite.player.x - 25;
-                this.heldWeapon.y = my.sprite.player.y + 5;
+                my.vfx.walking.setParticleSpeed(this.PARTICLE_VELOCITY, 0);
+
+                if (grounded) {
+                    my.vfx.walking.start();
+                    if (!my.sounds.footSteps.isPlaying) {
+                        my.sounds.footSteps.play();
+                    }
+                }
+
+            } else if (cursors.right.isDown) {
+                my.sprite.player.body.setVelocityX(this.ACCELERATION);
+
+                my.sprite.player.resetFlip();
+
+                my.vfx.walking.startFollow(my.sprite.player, my.sprite.player.displayWidth / 2 - 10, my.sprite.player.displayHeight / 2 - 5, false);
+
+                my.vfx.walking.setParticleSpeed(this.PARTICLE_VELOCITY, 0);
+
+                if (grounded) {
+                    my.vfx.walking.start();
+                    if (!my.sounds.footSteps.isPlaying) {
+                        my.sounds.footSteps.play();
+                    }
+                }
+
             } else {
-                this.heldWeapon.x = my.sprite.player.x + 25;
-                this.heldWeapon.y = my.sprite.player.y + 5;
-            }
-        }
-
-        // create freash array of enemies per update
-        this.enemies = [
-            ...this.evilWizardArray,
-            ...this.enemyChests,
-            ...this.orcArray
-        ];
-
-        // block used to hit an enemy
-        if (Phaser.Input.Keyboard.JustDown(this.hitKey) && this.heldWeapon && time >= this.nextPlayerHitTime) {
-
-            // calculate next time
-            this.nextPlayerHitTime = time + this.playerHitSpeed;
-
-            // play sound
-            if (this.hitSound) {
-                this.hitSound.play();
+                my.sprite.player.body.setVelocityX(0);
+                my.sprite.player.body.setDragX(this.DRAG);
+                my.vfx.walking.stop();
+                my.sounds.footSteps.stop();
             }
 
-            for (let enemy of this.enemies) {
-                let distance = Phaser.Math.Distance.Between(my.sprite.player.x, my.sprite.player.y, enemy.x, enemy.y);
+            if (!grounded) {
+                my.sounds.footSteps.stop();
+            }
 
-                if (distance < 100) {
-                    enemy.health -= this.playerHitDamage;
+            // player jump
+            // note that we need body.blocked rather than body.touching b/c the former applies to tilemap tiles and the latter to the "ground"
+            if (!my.sprite.player.body.blocked.down) {
+            }
+            if (my.sprite.player.body.blocked.down && Phaser.Input.Keyboard.JustDown(cursors.up)) {
+                my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY);
+                my.sounds.jump.play();
+            }
 
+            // when player is near a weapon and presses e
+            if (Phaser.Input.Keyboard.JustDown(this.equipKey) && this.nearWeapon) {
 
-                    if (enemy.health <= 0) {
-                        if (enemy.chomp) {
-                            my.sounds.chestDeath.play();
-                            enemy.chomp.stop();
-                            enemy.chomp.destroy();
+                let newWeapon = this.nearWeapon;
 
-                            let heart = this.heartArray.find(heart => heart.respectiveChest === enemy);
-                            if (heart && heart.active) {
-                                heart.x = enemy.x;
-                                heart.y = enemy.y + 200;
-                                heart.setVisible(true);
-                            }
-                        } else {
-                            my.sounds.enemyDeath.play();
+                if (this.heldWeapon) {
+                    this.heldWeapon.body.enable = true;
+                    this.heldWeapon.body.reset(this.heldWeapon.x, this.heldWeapon.y);
+                }
+
+                this.heldWeapon = newWeapon;
+                this.heldWeapon.body.enable = false;
+
+                this.nearWeapon = null;
+
+                this.currentWeapon = this.heldWeapon.name;
+
+                // set player damage to respective item
+                // damage values
+                if (this.currentWeapon == "dagger") {
+                    this.playerHitDamage = this.dagerDamage;
+                    this.playerHitSpeed = this.dagerSpeed;
+                    this.hitSound = my.sounds.daggerSound;
+                }
+
+                if (this.currentWeapon == "sword") {
+                    this.playerHitDamage = this.swordDamage;
+                    this.playerHitSpeed = this.swordSpeed;
+                    this.hitSound = my.sounds.swordSound;
+                }
+
+                if (this.currentWeapon == "axe") {
+                    this.playerHitDamage = this.axeDamage;
+                    this.playerHitSpeed = this.axeSpeed;
+                    this.hitSound = my.sounds.axeSound;
+                }
+            }
+
+            if (this.heldWeapon) {
+
+                // if facing right
+                if (my.sprite.player.flipX == true) {
+                    // facing left
+                    this.heldWeapon.x = my.sprite.player.x - 25;
+                    this.heldWeapon.y = my.sprite.player.y + 5;
+                } else {
+                    this.heldWeapon.x = my.sprite.player.x + 25;
+                    this.heldWeapon.y = my.sprite.player.y + 5;
+                }
+            }
+
+            // create fresh array of enemies per update
+            this.enemies = [
+                ...this.evilWizardArray,
+                ...this.enemyChests,
+                ...this.orcArray
+            ];
+
+            // block used to hit an enemy
+            if (Phaser.Input.Keyboard.JustDown(this.hitKey) && this.heldWeapon && time >= this.nextPlayerHitTime) {
+
+                // calculate next time
+                this.nextPlayerHitTime = time + this.playerHitSpeed;
+
+                // play sound
+                if (this.hitSound) {
+                    this.hitSound.play();
+                }
+
+                for (let enemy of this.enemies) {
+                    let distance = Phaser.Math.Distance.Between(my.sprite.player.x, my.sprite.player.y, enemy.x, enemy.y);
+
+                    if (distance < 100) {
+                        enemy.health -= this.playerHitDamage;
+
+                        if (!enemy.chomp) {
+                            let knockback = new Phaser.Math.Vector2(enemy.x - my.sprite.player.x, enemy.y - my.sprite.player.y);
+
+                            knockback.normalize();
+
+                            let startX = enemy.x;
+                            let startY = enemy.y;
+
+                            let newXPosition = enemy.x + knockback.x * 100;
+                            let newYPosition = enemy.y + knockback.y * 10;
+
+                            let peakX = (startX + newXPosition) / 2;
+                            let peakY = startY - 100;
+
+                            this.tweens.add({
+                                targets: enemy,
+                                x: peakX,
+                                y: peakY,
+                                duration: 200,
+                                ease: "Sine.easeOut",
+                                onComplete: () => {
+                                    this.tweens.add({
+                                        targets: enemy,
+                                        x: newXPosition,
+                                        y: newYPosition,
+                                        duration: 200,
+                                        ease: "Sine.easeIn",
+                                    });
+                                }
+                            })
                         }
 
-                        enemy.isDead = true;
-                        enemy.destroy();
+                        if (enemy.health <= 0) {
+                            if (enemy.chomp) {
+                                my.sounds.chestDeath.play();
+                                enemy.chomp.stop();
+                                enemy.chomp.destroy();
+
+                                let heart = this.heartArray.find(heart => heart.respectiveChest === enemy);
+                                if (heart && heart.active) {
+                                    heart.x = enemy.x;
+                                    heart.y = enemy.y + 200;
+                                    heart.setVisible(true);
+                                }
+                            } else {
+
+                                my.sounds.enemyDeath.play();
+                            }
+
+                            let deathCross = this.add.sprite(enemy.x, enemy.y, "deathCross");
+
+                            deathCross.setScale(2.0);
+
+                            enemy.isDead = true;
+                            enemy.destroy();
+                        }
                     }
                 }
             }
-        }
 
-        // filter out the dead enemies
-        this.evilWizardArray = this.evilWizardArray.filter(enemy => !enemy.isDead);
-        this.enemyChests = this.enemyChests.filter(chest => !chest.isDead);
-        this.orcArray = this.orcArray.filter(orc => !orc.isDead);
+            // filter out the dead enemies
+            this.evilWizardArray = this.evilWizardArray.filter(enemy => !enemy.isDead);
+            this.enemyChests = this.enemyChests.filter(chest => !chest.isDead);
+            this.orcArray = this.orcArray.filter(orc => !orc.isDead);
 
-        // loop to get heart from killed chest
-        for (let heart of this.heartArray) {
-            if (!heart.visible) continue;
-            if (!heart.active) continue;
+            // loop to get heart from killed chest
+            for (let heart of this.heartArray) {
+                if (!heart.visible) continue;
+                if (!heart.active) continue;
 
-            let distToHeart = Phaser.Math.Distance.Between(my.sprite.player.x, my.sprite.player.y, heart.x, heart.y);
+                let distToHeart = Phaser.Math.Distance.Between(my.sprite.player.x, my.sprite.player.y, heart.x, heart.y);
 
-            if (distToHeart < 40) {
-                my.sounds.healthPickUp.play();
-                this.playerHealth = Math.min(100, this.playerHealth + heart.giveHealth);
-                this.health.setText("Health: " + Math.ceil(this.playerHealth));
-                heart.setVisible(false);
-                heart.destroy();
-            }
-        }
-
-        // filter out dead hears
-        this.heartArray = this.heartArray.filter(heart => heart.active);
-
-
-        enemyMovement(this, this.evilWizardArray);
-        enemyMovement(this, this.orcArray);
-        enemyMelee(this, this.evilWizardArray);
-        enemyMelee(this, this.orcArray);
-        seperateEnemies(this.evilWizardArray); //wizard on wizard seperation
-        seperateEnemies(this.orcArray); // orc on orc eperation
-        seperateEnemies([...this.evilWizardArray, ...this.orcArray]); //wizard on orc seperation
-        moveProjectile(this, deltaTime);
-
-        // loop through each chest
-        for (let chest of this.enemyChests) {
-
-            if (chest.isDead == true) continue;
-
-            // get disntace from player to chest
-            let distanceFromChest = Phaser.Math.Distance.Between(my.sprite.player.x, my.sprite.player.y, chest.x, chest.y);
-
-            if (distanceFromChest < 200 && !chest.opened) {
-                chest.opened = true;
-                chest.chomp.play();
-                chest.anims.play("chestAttack");
+                if (distToHeart < 40) {
+                    my.sounds.healthPickUp.play();
+                    this.playerHealth = Math.min(100, this.playerHealth + heart.giveHealth);
+                    this.health.setText("Health: " + Math.ceil(this.playerHealth));
+                    heart.setVisible(false);
+                    heart.destroy();
+                }
             }
 
-            if (chest.opened && distanceFromChest < 50 && time >= chest.nextChompTime) {
-                this.playerHealth -= 0.5;
-                this.health.setText("Health: " + Math.ceil(this.playerHealth));
-                chest.nextChompTime = time + 1000;
-                this.my.sounds.hurtSound.play()
+            // filter out dead hears
+            this.heartArray = this.heartArray.filter(heart => heart.active);
+
+
+            enemyMovement(this, this.evilWizardArray);
+            enemyMovement(this, this.orcArray);
+            enemyMelee(this, this.evilWizardArray);
+            enemyMelee(this, this.orcArray);
+            seperateEnemies(this.evilWizardArray); //wizard on wizard seperation
+            seperateEnemies(this.orcArray); // orc on orc seperation
+            seperateEnemies([...this.evilWizardArray, ...this.orcArray]); //wizard on orc seperation
+            moveProjectile(this, deltaTime);
+
+            // loop through each chest
+            for (let chest of this.enemyChests) {
+
+                if (chest.isDead == true) continue;
+
+                // get distance from player to chest
+                let distanceFromChest = Phaser.Math.Distance.Between(my.sprite.player.x, my.sprite.player.y, chest.x, chest.y);
+
+                if (distanceFromChest < 200 && !chest.opened) {
+                    chest.opened = true;
+                    chest.chomp.play();
+                    chest.anims.play("chestAttack");
+                }
+
+                if (chest.opened && distanceFromChest < 50 && time >= chest.nextChompTime) {
+                    this.playerHealth -= 0.5;
+                    this.health.setText("Health: " + Math.ceil(this.playerHealth));
+                    chest.nextChompTime = time + 1000;
+                    this.my.sounds.hurtSound.play()
+                }
+
+                if (distanceFromChest > 50 && chest.opened) {
+                    chest.opened = false;
+                    chest.chomp.stop();
+                    chest.anims.stop();
+                    chest.setFrame(89);
+                }
+
             }
 
-            if (distanceFromChest > 50 && chest.opened) {
-                chest.opened = false;
-                chest.chomp.stop();
-                chest.anims.stop();
-                chest.setFrame(89);
+            if (this.playerHealth <= 0) {
+
+                this.health.setText("Health: 0");
+                this.gameOver = true;
+                this.my.sounds.footSteps.stop();
+                this.my.sounds.deathSound.play();
+                this.my.sprite.player.setVisible(false);
+                this.my.sprite.player.body.enable = false;
+                this.my.sprite.player.setVelocity(0, 0);
+                this.cameras.main.stopFollow();
+                this.playerAlive = false;
+                my.vfx.walking.stop();
+                my.sounds.music.stop();
+                my.sounds.loseSound.play();
+                this.scene.start("valhallaScene");
+                return;
             }
 
-        }
-
-        if (this.playerHealth <= 0) {
-            
-            this.health.setText("Health: 0");
-            this.gameOver = true;
-            this.my.sounds.footSteps.stop();
-            this.my.sounds.deathSound.play();
-            this.my.sprite.player.setVisible(false);
-            this.my.sprite.player.body.enable = false;
-            this.my.sprite.player.setVelocity(0, 0);
-            this.cameras.main.stopFollow();
-            this.playerAlive = false;
-            my.vfx.walking.stop();
-            my.sounds.music.stop();
-            my.sounds.loseSound.play();
-            this.scene.start("valhallaScene");
-            return;
-        }
-        
-        if (this.keysCollected >= this.keysToCollect && this.coinsCollected >= this.coinsToCollect) {
-            this.playerAlive = false;
-            my.vfx.walking.stop();
-            my.sounds.music.stop();
-            my.sounds.winSound.play();
-            this.showEndScreen("YOU WIN! :)", "#1900ff");
-            return;
+            if (this.keysCollected >= this.keysToCollect && this.coinsCollected >= this.coinsToCollect) {
+                this.playerAlive = false;
+                my.vfx.walking.stop();
+                my.sounds.music.stop();
+                my.sounds.winSound.play();
+                this.showEndScreen("YOU WIN! :)", "#1900ff");
+                return;
             }
         } else {
             this.reset();
