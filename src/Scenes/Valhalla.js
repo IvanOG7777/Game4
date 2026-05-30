@@ -1,3 +1,5 @@
+import { createDragon } from "./GameFunctions.js";
+
 class Valhalla extends Phaser.Scene {
     constructor() {
         super("valhallaScene");
@@ -15,8 +17,6 @@ class Valhalla extends Phaser.Scene {
         this.gameOver = false;
         this.gameWon = false;
         this.playerAlive = true;
-
-        this.dragonAlive = true;
     }
 
     init() {
@@ -110,69 +110,9 @@ class Valhalla extends Phaser.Scene {
         this.my.sprite.player = this.physics.add.sprite(200, 400, "vikingPlayer").setScale(2.25);
         this.my.sprite.player.setCollideWorldBounds(true);
 
-        this.dragon = this.physics.add.sprite(700, 400, "walk1");
-        
-        
-        this.anims.create({
-            key: "dragonWalk",
-            frames: [
-                {key: "walk1"},
-                {key: "walk2"},
-                {key: "walk3"},
-                {key: "walk4"},
-                {key: "walk5"},
-                {key: "walk6"},
-                {key: "walk7"},
-                {key: "walk8"},
-            ],
-            frameRate: 6,
-            repeat: -1
-
-        });
-
-
-        this.anims.create({
-            key: "dragonRun",
-            frames: [
-                {key: "run1"},
-                {key: "run2"},
-                {key: "run3"},
-                {key: "run4"},
-                {key: "run5"},
-                {key: "run6"},
-                {key: "run7"},
-                {key: "run8"},
-            ],
-            frameRate: 6,
-            repeat: -1
-
-        });
-        
-        this.dragon.anims.play("dragonWalk");
-        this.dragon.setScale(2.25);
-        this.dragon.setCollideWorldBounds(true);
-        this.dragon.setFlipX(true);
-        
-        this.dragonHealth = 300;
-        this.dragon.speed = 80;
-        this.dragon.direction = -1;
-        this.dragon.leftBound = 500;
-        this.dragon.rightBound = 1000;
-
-        this.dragon.state = "walk";
-
-        this.dragon.speed = 80;
-        this.dragon.walkSpeed = 80;
-        this.dragon.chargeSpeed = 300;
-
-        this.dragon.chargeCooldown = 5000;
-        this.dragon.chargeDuration = 3000;
-        this.dragon.nextChargeTime = 0;
-        this.dragon.chargeEndTime = 0;
-        this.dragon.chargePlayer = false;
-
         this.physics.add.collider(this.my.sprite.player, this.groundLayer);
-        this.physics.add.collider(this.dragon, this.groundLayer);
+
+        this.dragon = createDragon(this);
 
         my.vfx.walking = this.add.particles(0, 0, "kenny-particles", {
             frame: ['smoke_03.png', 'smoke_09.png'],
@@ -256,7 +196,7 @@ class Valhalla extends Phaser.Scene {
             }
 
             // if the dragon is alive
-            if (this.dragonAlive == true) {
+            if (this.dragon.alive == true) {
                 // is the sound isnt playing
                 if (!my.sounds.dragonStomp.isPlaying) {
                     my.sounds.dragonStomp.play(); // play the sound

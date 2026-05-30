@@ -269,6 +269,152 @@ function specificSpawnEnemies(scene, mobType, sections, amount) {
     return enemies;
 }
 
+function createDragon(scene) {
+    let dragon = scene.physics.add.sprite(1000, 400, "walk1");
+        
+        
+    if (!scene.anims.exists("dragonWalk")) {
+        scene.anims.create({
+            key: "dragonWalk",
+            frames: [
+                {key: "walk1"},
+                {key: "walk2"},
+                {key: "walk3"},
+                {key: "walk4"},
+                {key: "walk5"},
+                {key: "walk6"},
+                {key: "walk7"},
+                {key: "walk8"},
+            ],
+            frameRate: 6,
+            repeat: -1
+
+        });
+    }
+
+
+    if (!scene.anims.exists("dragonRun")) {
+        scene.anims.create({
+            key: "dragonRun",
+            frames: [
+                {key: "run1"},
+                {key: "run2"},
+                {key: "run3"},
+                {key: "run4"},
+                {key: "run5"},
+                {key: "run6"},
+                {key: "run7"},
+                {key: "run8"},
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+    }
+
+    if (!scene.anims.exists("dragonRest")) {
+        scene.anims.create({
+            key: "dragonRest",
+            frames: [
+                {key: "idle1"},
+                {key: "idle2"},
+                {key: "idle3"},
+                {key: "idle4"},
+                {key: "idle5"},
+                {key: "idle6"},
+            ],
+            frameRate: 6,
+            repeat: -1
+        })
+    }
+        
+        dragon.anims.play("dragonWalk");
+        dragon.setScale(2.25);
+        dragon.setCollideWorldBounds(true);
+        dragon.setFlipX(true);
+        
+        dragon.health = 300;
+        dragon.speed = 80;
+        dragon.direction = -1;
+
+        dragon.state = "walk";
+
+        dragon.speed = 80;
+        dragon.walkSpeed = 80;
+        dragon.chargeSpeed = 300;
+
+        dragon.chargeCooldown = 4000;
+        dragon.chargeDuration = 4000;
+        dragon.restTime = 3000;
+        dragon.nextChargeTime = 0;
+        dragon.chargeEndTime = 0;
+        dragon.restEndTime = 0;
+        dragon.chargePlayer = false;
+        dragon.wander = true;
+        dragon.alive = true;
+        dragon.rest = false;
+        dragon.jump = false;
+        scene.physics.add.collider(dragon, scene.groundLayer);
+
+        return dragon;
+}
+
+function dragonActions(scene, dragon, time) {
+    let player = scene.my.sprite.player;
+
+    if (dragon.state == "walk") {
+        dragon.setVelocityX(dragon.walkSpeed * dragon.direction);
+
+        if (dragon.body.blocked.left) {
+            dragon.direction = 1;
+            dragon.setFlipX(false);
+        }
+
+         if (dragon.body.blocked.right) {
+            dragon.direction = -1;
+            dragon.setFlipX(true);
+        }
+
+        if (dragon.anims.currentAnim?.key !== "dragonWalk") {
+            dragon.anims.play("dragonWalk");
+        }
+        
+        if (time >= dragon.nextChargeTime) {
+            dragon.state = "charge";
+            dragon.chargeEndTime = time + dragon.chargeDuration;
+
+            if (player.x < dragon.x) {
+                dragon.direction = -1;
+                dragon.setFlipX(true);
+            } else {
+                dragon.direction = 1;
+                dragon.setFlipX(false);
+            }
+        }
+    } else if (dragon.state == "charge") {
+        dragon.setVelocityX(dragon.chargeSpeed * dragon.direction);
+
+        if (dragon.anims.currentAnim?.key !== "dragonRun") {
+            dragon.anims.play("dragonRun");
+        }
+
+        if (time >= dragon.chargeEndTime) {
+            dragon.state = "rest";
+            dragon.restEndTime = time + 1000;
+        }
+    } else if (dragon.state == "rest") {
+        dragon.setVelocityX(0);
+
+        if (dragon.anims.currentAnim?.key !== "dragonRun") {
+            dragon.anims.play("dragonRun");
+        }
+
+        if (time >= dragon.restEndTime) {
+            dragon.state = "walk";
+            dragon.nextChargeTime = time + dragon.chargeCooldown;
+        }
+    }
+}
+
 function collides(a, b) {
     if (Math.abs(a.x - b.x) > (a.displayWidth / 2 + b.displayWidth / 2)) return false;
     if (Math.abs(a.y - b.y) > (a.displayHeight / 2 + b.displayHeight / 2)) return false;
@@ -283,5 +429,7 @@ export {
     moveProjectile,
     enemyMelee,
     seperateEnemies,
-    specificSpawnEnemies
+    specificSpawnEnemies,
+    createDragon,
+    dragonActions
 };
