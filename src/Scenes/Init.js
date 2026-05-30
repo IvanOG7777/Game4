@@ -46,8 +46,9 @@ class Init extends Phaser.Scene {
         
         if (Phaser.Input.Keyboard.JustDown(this.space)) {
             my.sounds.music1.stop();
-            this.scene.start("platformerScene");
+            this.scene.start("valhallaScene");
             //platformerScene
+            //valhallaScene
         }
     }
 }

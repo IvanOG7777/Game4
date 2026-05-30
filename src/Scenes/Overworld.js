@@ -35,6 +35,7 @@ class Overworld extends Phaser.Scene {
         this.orcMeleeDelay = 1500
 
         this.meleeDamage = 1;
+        this.knockbackDistance = 100;
 
         this.enemyWanderTime = 1000;
 
@@ -705,10 +706,22 @@ class Overworld extends Phaser.Scene {
 
                             knockback.normalize();
 
+                            if (this.currentWeapon == "dagger") {
+                                this.knockbackDistance = 100;
+                            }
+
+                            if (this.currentWeapon == "sword") {
+                                this.knockbackDistance = 150;
+                            }
+
+                            if (this.currentWeapon == "axe") {
+                                this.knockbackDistance = 200;
+                            }
+
                             let startX = enemy.x;
                             let startY = enemy.y;
 
-                            let newXPosition = enemy.x + knockback.x * 100;
+                            let newXPosition = enemy.x + knockback.x * this.knockbackDistance;
                             let newYPosition = enemy.y + knockback.y * 10;
 
                             let peakX = (startX + newXPosition) / 2;

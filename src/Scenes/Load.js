@@ -31,7 +31,50 @@ class Load extends Phaser.Scene {
         this.load.image("vikingPlayer", "vikingPlayer.png");
         this.load.image("heart", "heart.png");
         this.load.image("deathCross", "deathCross.png");
+
+        //Dragon assets
+        // Attack pngs
+        this.load.image("attack1", "attack1.png");
+        this.load.image("attack2", "attack2.png");
+        this.load.image("attack3", "attack3.png");
+        this.load.image("attack4", "attack4.png");
+
+        // Death pngs
+        this.load.image("death1", "death1.png");
+        this.load.image("death2", "death2.png");
+        this.load.image("death3", "death3.png");
+        this.load.image("death4", "death4.png");
+        this.load.image("death5", "death5.png");
+
+        // Idle pngs
+        this.load.image("idle1", "idle1.png");
+        this.load.image("idle2", "idle2.png");
+        this.load.image("idle3", "idle3.png");
+        this.load.image("idle4", "idle4.png");
+        this.load.image("idle5", "idle5.png");
+        this.load.image("idle6", "idle6.png");
+
+        // Run pngs
+        this.load.image("run1", "run1.png");
+        this.load.image("run2", "run2.png");
+        this.load.image("run3", "run3.png");
+        this.load.image("run4", "run4.png");
+        this.load.image("run5", "run5.png");
+        this.load.image("run6", "run6.png");
+        this.load.image("run7", "run7.png");
+        this.load.image("run8", "run8.png");
         
+        // Walk pngs
+        this.load.image("walk1", "walk1.png");
+        this.load.image("walk2", "walk2.png");
+        this.load.image("walk3", "walk3.png");
+        this.load.image("walk4", "walk4.png");
+        this.load.image("walk5", "walk5.png");
+        this.load.image("walk6", "walk6.png");
+        this.load.image("walk7", "walk7.png");
+        this.load.image("walk8", "walk8.png");
+
+
         // In game items
         this.load.image("redPotion", "wizardPotion.png");
 
@@ -63,6 +106,7 @@ class Load extends Phaser.Scene {
         this.load.audio("winSound", "xmersounds-soft-treble-win-fade-out-ending-sound-effect-416829.mp3");
         this.load.audio("loseSound", "qbertapply-falled-sound-effect-278635.mp3");
         this.load.audio("healthPickUp", "freesound_community-item-pick-up-38258.mp3");
+        this.load.audio("dragonStomp", "dragon-studio-footstep-rustling-499643.mp3");
 
         this.load.audio("music1", "1. Echoes of Valhalla.ogg");
         this.load.audio("music2", "2. Northern Lights .ogg");

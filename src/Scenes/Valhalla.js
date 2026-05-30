@@ -15,6 +15,8 @@ class Valhalla extends Phaser.Scene {
         this.gameOver = false;
         this.gameWon = false;
         this.playerAlive = true;
+
+        this.dragonAlive = true;
     }
 
     init() {
@@ -41,6 +43,10 @@ class Valhalla extends Phaser.Scene {
         my.sounds.winSound = this.sound.add("winSound");
         my.sounds.loseSound = this.sound.add("loseSound");
         my.sounds.healthPickUp = this.sound.add("healthPickUp");
+        my.sounds.dragonStomp = this.sound.add("dragonStomp", {
+            loop: true,
+            volume: 0.5,
+        });
 
         my.sounds.music;
 
@@ -104,7 +110,69 @@ class Valhalla extends Phaser.Scene {
         this.my.sprite.player = this.physics.add.sprite(200, 400, "vikingPlayer").setScale(2.25);
         this.my.sprite.player.setCollideWorldBounds(true);
 
+        this.dragon = this.physics.add.sprite(700, 400, "walk1");
+        
+        
+        this.anims.create({
+            key: "dragonWalk",
+            frames: [
+                {key: "walk1"},
+                {key: "walk2"},
+                {key: "walk3"},
+                {key: "walk4"},
+                {key: "walk5"},
+                {key: "walk6"},
+                {key: "walk7"},
+                {key: "walk8"},
+            ],
+            frameRate: 6,
+            repeat: -1
+
+        });
+
+
+        this.anims.create({
+            key: "dragonRun",
+            frames: [
+                {key: "run1"},
+                {key: "run2"},
+                {key: "run3"},
+                {key: "run4"},
+                {key: "run5"},
+                {key: "run6"},
+                {key: "run7"},
+                {key: "run8"},
+            ],
+            frameRate: 6,
+            repeat: -1
+
+        });
+        
+        this.dragon.anims.play("dragonWalk");
+        this.dragon.setScale(2.25);
+        this.dragon.setCollideWorldBounds(true);
+        this.dragon.setFlipX(true);
+        
+        this.dragonHealth = 300;
+        this.dragon.speed = 80;
+        this.dragon.direction = -1;
+        this.dragon.leftBound = 500;
+        this.dragon.rightBound = 1000;
+
+        this.dragon.state = "walk";
+
+        this.dragon.speed = 80;
+        this.dragon.walkSpeed = 80;
+        this.dragon.chargeSpeed = 300;
+
+        this.dragon.chargeCooldown = 5000;
+        this.dragon.chargeDuration = 3000;
+        this.dragon.nextChargeTime = 0;
+        this.dragon.chargeEndTime = 0;
+        this.dragon.chargePlayer = false;
+
         this.physics.add.collider(this.my.sprite.player, this.groundLayer);
+        this.physics.add.collider(this.dragon, this.groundLayer);
 
         my.vfx.walking = this.add.particles(0, 0, "kenny-particles", {
             frame: ['smoke_03.png', 'smoke_09.png'],
@@ -129,7 +197,6 @@ class Valhalla extends Phaser.Scene {
     }
 
     update(time, deltaTime) {
-
         if (this.playerAlive == true) {
             let cursors = this.cursors;
             let my = this.my;
@@ -186,6 +253,68 @@ class Valhalla extends Phaser.Scene {
             if (my.sprite.player.body.blocked.down && Phaser.Input.Keyboard.JustDown(cursors.up)) {
                 my.sprite.player.body.setVelocityY(this.JUMP_VELOCITY);
                 my.sounds.jump.play();
+            }
+
+            // if the dragon is alive
+            if (this.dragonAlive == true) {
+                // is the sound isnt playing
+                if (!my.sounds.dragonStomp.isPlaying) {
+                    my.sounds.dragonStomp.play(); // play the sound
+                    //avoids many sounds playing at once
+                }
+
+                // WILL FIX THIS LOGIC LATER ONLY TESTING FOR NOW
+                // Is current dragon state is walking
+                if (this.dragon.state == "walk") {
+                    this.dragon.body.setVelocityX(this.dragon.speed * this.dragon.direction); // set dragons x velocity
+
+                    if (this.dragon.x < 200) {
+                            this.dragon.direction = -1;
+                            this.dragon.setFlipX(true);
+                        } else if (this.dragon.x > 1000){
+                            this.dragon.direction = 1;
+                            this.dragon.setFlipX(false);
+                        }
+
+                    //chatpgt
+                    // if animation isnt playing
+                    if (this.dragon.anims.currentAnim?.key !== "dragonWalk") {
+                        this.dragon.anims.play("dragonWalk"); // play it
+                    }
+                    //end of chatpgt
+
+                    // if the current time is greater than dragons next charge time 
+                    if (time >= this.dragon.nextChargeTime) {
+                        this.dragon.state = "charge"; // change state to charge
+                        this.dragon.chargeEndTime = time + this.dragon.chargeDuration;
+
+                        // swap direction to left is dragon is past player
+                        if (my.sprite.player.x < this.dragon.x) {
+                            this.dragon.direction = -1;
+                            this.dragon.setFlipX(true);
+                        } else { // swap right
+                            this.dragon.direction = 1;
+                            this.dragon.setFlipX(false);
+                        }
+                    }
+                }
+
+                // if current state is charge
+                if (this.dragon.state == "charge") {
+                    this.dragon.body.setVelocityX(this.dragon.chargeSpeed * this.dragon.direction); // set speed to charge speed
+
+                    //chatpgt
+                    if (this.dragon.anims.currentAnim?.key !== "dragonRun") {
+                        this.dragon.anims.play("dragonRun");
+                    }
+                    // end of //chatpgt
+
+                    // after it finihses charging
+                    if (time >= this.dragon.chargeEndTime) {
+                        this.dragon.state = "walk"; // set state back to walk
+                        this.dragon.nextChargeTime = time + this.dragon.chargeCooldown; // add to next cool down
+                    }
+                }
             }
         }
     }
