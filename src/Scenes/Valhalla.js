@@ -1,4 +1,7 @@
-import { createDragon } from "./GameFunctions.js";
+import { 
+    createDragon,
+    dragonActions
+} from "./GameFunctions.js";
 
 class Valhalla extends Phaser.Scene {
     constructor() {
@@ -197,64 +200,7 @@ class Valhalla extends Phaser.Scene {
 
             // if the dragon is alive
             if (this.dragon.alive == true) {
-                // is the sound isnt playing
-                if (!my.sounds.dragonStomp.isPlaying) {
-                    my.sounds.dragonStomp.play(); // play the sound
-                    //avoids many sounds playing at once
-                }
-
-                // WILL FIX THIS LOGIC LATER ONLY TESTING FOR NOW
-                // Is current dragon state is walking
-                if (this.dragon.state == "walk") {
-                    this.dragon.body.setVelocityX(this.dragon.speed * this.dragon.direction); // set dragons x velocity
-
-                    if (this.dragon.x < 200) {
-                            this.dragon.direction = -1;
-                            this.dragon.setFlipX(true);
-                        } else if (this.dragon.x > 1000){
-                            this.dragon.direction = 1;
-                            this.dragon.setFlipX(false);
-                        }
-
-                    //chatpgt
-                    // if animation isnt playing
-                    if (this.dragon.anims.currentAnim?.key !== "dragonWalk") {
-                        this.dragon.anims.play("dragonWalk"); // play it
-                    }
-                    //end of chatpgt
-
-                    // if the current time is greater than dragons next charge time 
-                    if (time >= this.dragon.nextChargeTime) {
-                        this.dragon.state = "charge"; // change state to charge
-                        this.dragon.chargeEndTime = time + this.dragon.chargeDuration;
-
-                        // swap direction to left is dragon is past player
-                        if (my.sprite.player.x < this.dragon.x) {
-                            this.dragon.direction = -1;
-                            this.dragon.setFlipX(true);
-                        } else { // swap right
-                            this.dragon.direction = 1;
-                            this.dragon.setFlipX(false);
-                        }
-                    }
-                }
-
-                // if current state is charge
-                if (this.dragon.state == "charge") {
-                    this.dragon.body.setVelocityX(this.dragon.chargeSpeed * this.dragon.direction); // set speed to charge speed
-
-                    //chatpgt
-                    if (this.dragon.anims.currentAnim?.key !== "dragonRun") {
-                        this.dragon.anims.play("dragonRun");
-                    }
-                    // end of //chatpgt
-
-                    // after it finihses charging
-                    if (time >= this.dragon.chargeEndTime) {
-                        this.dragon.state = "walk"; // set state back to walk
-                        this.dragon.nextChargeTime = time + this.dragon.chargeCooldown; // add to next cool down
-                    }
-                }
+                dragonActions(this, this.dragon, time);
             }
         }
     }

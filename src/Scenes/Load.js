@@ -74,6 +74,12 @@ class Load extends Phaser.Scene {
         this.load.image("walk7", "walk7.png");
         this.load.image("walk8", "walk8.png");
 
+        // Jump pngs
+        this.load.image("jump1", "jump1.png");
+        this.load.image("jump2", "jump2.png");
+        this.load.image("jump3", "jump3.png");
+        this.load.image("jump4", "jump4.png");
+
 
         // In game items
         this.load.image("redPotion", "wizardPotion.png");

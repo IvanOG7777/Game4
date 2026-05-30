@@ -326,6 +326,20 @@ function createDragon(scene) {
             repeat: -1
         })
     }
+
+    if (!scene.anims.exists("dragonJump")) {
+        scene.anims.create({
+            key: "dragonJump",
+            frames: [
+                {key: "jump1"},
+                {key: "jump2"},
+                {key: "jump3"},
+                {key: "jump4"},
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+    }
         
         dragon.anims.play("dragonWalk");
         dragon.setScale(2.25);
@@ -360,6 +374,11 @@ function createDragon(scene) {
 
 function dragonActions(scene, dragon, time) {
     let player = scene.my.sprite.player;
+    
+    if (!scene.my.sounds.dragonStomp.isPlaying) {
+        scene.my.sounds.dragonStomp.play(); // play the sound
+        // avoids many sounds playing at once
+    }
 
     if (dragon.state == "walk") {
         dragon.setVelocityX(dragon.walkSpeed * dragon.direction);
@@ -399,14 +418,23 @@ function dragonActions(scene, dragon, time) {
 
         if (time >= dragon.chargeEndTime) {
             dragon.state = "rest";
-            dragon.restEndTime = time + 1000;
+            dragon.restEndTime = time + dragon.restTime;
         }
     } else if (dragon.state == "rest") {
         dragon.setVelocityX(0);
+        scene.my.sounds.dragonStomp.stop(); 
 
-        if (dragon.anims.currentAnim?.key !== "dragonRun") {
-            dragon.anims.play("dragonRun");
+        if (dragon.anims.currentAnim?.key !== "dragonRest") {
+            dragon.anims.play("dragonRest");
         }
+
+        if (player.x < dragon.x) {
+                dragon.direction = -1;
+                dragon.setFlipX(true);
+            } else {
+                dragon.direction = 1;
+                dragon.setFlipX(false);
+            }
 
         if (time >= dragon.restEndTime) {
             dragon.state = "walk";
