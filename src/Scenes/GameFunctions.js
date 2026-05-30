@@ -171,7 +171,7 @@ function enemyMelee(scene, enemyArray) {
     let currentTime = scene.time.now;
 
     for (let enemy of enemyArray) {
-        
+
         if (currentTime < enemy.nextMeleeTime) {
             continue;
         }
@@ -271,21 +271,12 @@ function specificSpawnEnemies(scene, mobType, sections, amount) {
 
 function createDragon(scene) {
     let dragon = scene.physics.add.sprite(1000, 400, "walk1");
-        
-        
+
+
     if (!scene.anims.exists("dragonWalk")) {
         scene.anims.create({
             key: "dragonWalk",
-            frames: [
-                {key: "walk1"},
-                {key: "walk2"},
-                {key: "walk3"},
-                {key: "walk4"},
-                {key: "walk5"},
-                {key: "walk6"},
-                {key: "walk7"},
-                {key: "walk8"},
-            ],
+            frames: [{key: "walk1"}, {key: "walk2"}, {key: "walk3"}, {key: "walk4"}, {key: "walk5"}, {key: "walk6"}, {key: "walk7"}, {key: "walk8"},],
             frameRate: 6,
             repeat: -1
 
@@ -296,16 +287,7 @@ function createDragon(scene) {
     if (!scene.anims.exists("dragonRun")) {
         scene.anims.create({
             key: "dragonRun",
-            frames: [
-                {key: "run1"},
-                {key: "run2"},
-                {key: "run3"},
-                {key: "run4"},
-                {key: "run5"},
-                {key: "run6"},
-                {key: "run7"},
-                {key: "run8"},
-            ],
+            frames: [{key: "run1"}, {key: "run2"}, {key: "run3"}, {key: "run4"}, {key: "run5"}, {key: "run6"}, {key: "run7"}, {key: "run8"},],
             frameRate: 6,
             repeat: -1
         });
@@ -314,14 +296,7 @@ function createDragon(scene) {
     if (!scene.anims.exists("dragonRest")) {
         scene.anims.create({
             key: "dragonRest",
-            frames: [
-                {key: "idle1"},
-                {key: "idle2"},
-                {key: "idle3"},
-                {key: "idle4"},
-                {key: "idle5"},
-                {key: "idle6"},
-            ],
+            frames: [{key: "idle1"}, {key: "idle2"}, {key: "idle3"}, {key: "idle4"}, {key: "idle5"}, {key: "idle6"},],
             frameRate: 6,
             repeat: -1
         })
@@ -330,116 +305,178 @@ function createDragon(scene) {
     if (!scene.anims.exists("dragonJump")) {
         scene.anims.create({
             key: "dragonJump",
-            frames: [
-                {key: "jump1"},
-                {key: "jump2"},
-                {key: "jump3"},
-                {key: "jump4"},
-            ],
+            frames: [{key: "jump1"}, {key: "jump2"}, {key: "jump3"}, {key: "jump4"},],
             frameRate: 6,
-            repeat: -1
+            repeat: 0
         });
     }
-        
-        dragon.anims.play("dragonWalk");
-        dragon.setScale(2.25);
-        dragon.setCollideWorldBounds(true);
-        dragon.setFlipX(true);
-        
-        dragon.health = 300;
-        dragon.speed = 80;
+
+    dragon.anims.play("dragonWalk");
+    dragon.setScale(2.25);
+    dragon.setCollideWorldBounds(true);
+    dragon.setFlipX(true);
+
+    dragon.health = 300;
+    dragon.speed = 80;
+    dragon.direction = -1;
+
+    dragon.state = "walk";
+
+    dragon.speed = 80;
+    dragon.walkSpeed = 80;
+    dragon.chargeSpeed = 300;
+
+    dragon.jumpRange = 500;
+    dragon.jumpSpeedX = 350;
+    dragon.jumpVelocityY = -800;
+    dragon.jumpTargetX = 0;
+    dragon.jumpDamageRadius = 200;
+
+    dragon.chargeCooldown = 4000;
+    dragon.chargeDuration = 4000;
+    dragon.restTime = 3000;
+    dragon.nextChargeTime = 0;
+    dragon.chargeEndTime = 0;
+    dragon.restEndTime = 0;
+
+    dragon.chargePlayer = false;
+    dragon.wander = true;
+    dragon.alive = true;
+    dragon.rest = false;
+    dragon.jump = false;
+    dragon.hasJumped = false;
+
+    scene.physics.add.collider(dragon, scene.groundLayer);
+
+    return dragon;
+}
+
+function dragonWalk(scene, dragon, player, time) {
+    playDragonStomps(scene);
+
+    dragon.setVelocityX(dragon.walkSpeed * dragon.direction);
+
+    if (dragon.body.blocked.left) {
+        dragon.direction = 1;
+        dragon.setFlipX(false);
+    }
+
+    if (dragon.body.blocked.right) {
         dragon.direction = -1;
+        dragon.setFlipX(true);
+    }
 
+    playDragonAnimation(dragon, "dragonWalk");
+
+    if (time >= dragon.nextChargeTime) {
+        dragon.state = "charge";
+        dragon.chargeEndTime = time + dragon.chargeDuration;
+
+        dragonFacePlayer(dragon, player);
+    }
+}
+
+function dragonCharge(scene, dragon, player, time) {
+    playDragonStomps(scene);
+
+    dragon.setVelocityX(dragon.chargeSpeed * dragon.direction);
+    playDragonAnimation(dragon, "dragonRun");
+
+    let distanceX = Math.abs(player.x - dragon.x);
+
+    if (distanceX <= dragon.jumpRange && dragon.body.blocked.down) {
+        dragon.state = "jump";
+        dragon.jumpTargetX = player.x;
+        dragon.hasJumped = false;
+        dragonFacePlayer(dragon, player);
+        return;
+    }
+
+    if (time >= dragon.chargeEndTime) {
+        dragon.state = "rest";
+        dragon.restEndTime = time + dragon.restTime;
+    }
+}
+
+function dragonRest(scene, dragon, player, time) {
+    dragon.setVelocityX(0);
+    scene.my.sounds.dragonStomp.stop();
+
+    playDragonAnimation(dragon, "dragonRest");
+    dragonFacePlayer(dragon, player);
+
+    if (time >= dragon.restEndTime) {
         dragon.state = "walk";
+        dragon.nextChargeTime = time + dragon.chargeCooldown;
+    }
+}
 
-        dragon.speed = 80;
-        dragon.walkSpeed = 80;
-        dragon.chargeSpeed = 300;
+function dragonJump(scene, dragon, time) {
+    scene.my.sounds.dragonStomp.stop();
 
-        dragon.chargeCooldown = 4000;
-        dragon.chargeDuration = 4000;
-        dragon.restTime = 3000;
-        dragon.nextChargeTime = 0;
-        dragon.chargeEndTime = 0;
-        dragon.restEndTime = 0;
-        dragon.chargePlayer = false;
-        dragon.wander = true;
-        dragon.alive = true;
-        dragon.rest = false;
-        dragon.jump = false;
-        scene.physics.add.collider(dragon, scene.groundLayer);
+    if (!dragon.hasJumped) {
+        dragon.hasJumped = true;
 
-        return dragon;
+        dragon.anims.play("dragonJump");
+        dragon.setVelocityY(dragon.jumpVelocityY);
+
+        if (dragon.jumpTargetX < dragon.x) {
+            dragon.setVelocityX(-dragon.jumpSpeedX);
+        } else {
+            dragon.setVelocityX(dragon.jumpSpeedX);
+        }
+    }
+
+    if (dragon.body.velocity.y > 0) {
+        dragon.setTexture("jump4");
+    }
+
+    if (dragon.body.blocked.down && dragon.hasJumped && dragon.body.velocity.y === 0) {
+        dragon.setVelocityX(0);
+        dragon.state = "rest";
+        dragon.restEndTime = time + dragon.restTime;
+    }
+}
+
+// function that will make dragon face player
+function dragonFacePlayer(dragon, player) {
+    if (player.x < dragon.x) {
+        dragon.direction = -1;
+        dragon.setFlipX(true);
+    } else {
+        dragon.direction = 1;
+        dragon.setFlipX(false);
+    }
+}
+
+// function that plays the passed animation type for the dragon
+function playDragonAnimation(dragon, animationType) {
+    if (dragon.anims.currentAnim?.key !== animationType) {
+        dragon.anims.play(animationType);
+    }
+}
+
+// function that plays dragon sounds. Might make this like animation because I will add different dragon sounds
+function playDragonStomps(scene) {
+    if (!scene.my.sounds.dragonStomp.isPlaying) {
+        scene.my.sounds.dragonStomp.play();
+    }
 }
 
 function dragonActions(scene, dragon, time) {
     let player = scene.my.sprite.player;
-    
-    if (!scene.my.sounds.dragonStomp.isPlaying) {
-        scene.my.sounds.dragonStomp.play(); // play the sound
-        // avoids many sounds playing at once
-    }
 
     if (dragon.state == "walk") {
-        dragon.setVelocityX(dragon.walkSpeed * dragon.direction);
-
-        if (dragon.body.blocked.left) {
-            dragon.direction = 1;
-            dragon.setFlipX(false);
-        }
-
-         if (dragon.body.blocked.right) {
-            dragon.direction = -1;
-            dragon.setFlipX(true);
-        }
-
-        if (dragon.anims.currentAnim?.key !== "dragonWalk") {
-            dragon.anims.play("dragonWalk");
-        }
-        
-        if (time >= dragon.nextChargeTime) {
-            dragon.state = "charge";
-            dragon.chargeEndTime = time + dragon.chargeDuration;
-
-            if (player.x < dragon.x) {
-                dragon.direction = -1;
-                dragon.setFlipX(true);
-            } else {
-                dragon.direction = 1;
-                dragon.setFlipX(false);
-            }
-        }
-    } else if (dragon.state == "charge") {
-        dragon.setVelocityX(dragon.chargeSpeed * dragon.direction);
-
-        if (dragon.anims.currentAnim?.key !== "dragonRun") {
-            dragon.anims.play("dragonRun");
-        }
-
-        if (time >= dragon.chargeEndTime) {
-            dragon.state = "rest";
-            dragon.restEndTime = time + dragon.restTime;
-        }
-    } else if (dragon.state == "rest") {
-        dragon.setVelocityX(0);
-        scene.my.sounds.dragonStomp.stop(); 
-
-        if (dragon.anims.currentAnim?.key !== "dragonRest") {
-            dragon.anims.play("dragonRest");
-        }
-
-        if (player.x < dragon.x) {
-                dragon.direction = -1;
-                dragon.setFlipX(true);
-            } else {
-                dragon.direction = 1;
-                dragon.setFlipX(false);
-            }
-
-        if (time >= dragon.restEndTime) {
-            dragon.state = "walk";
-            dragon.nextChargeTime = time + dragon.chargeCooldown;
-        }
+        dragonWalk(scene, dragon, player, time);
+    }
+    else if (dragon.state == "charge") {
+        dragonCharge(scene, dragon, player, time);
+    }
+    else if (dragon.state == "jump") {
+        dragonJump(scene, dragon, time);
+    }
+    else if (dragon.state == "rest") {
+        dragonRest(scene, dragon, player, time);
     }
 }
 
