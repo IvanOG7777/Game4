@@ -311,6 +311,15 @@ function createDragon(scene) {
         });
     }
 
+      if (!scene.anims.exists("dragonAttack")) {
+        scene.anims.create({
+            key: "dragonAttack",
+            frames: [{key: "attack1"}, {key: "attack2"}, {key: "attack3"}, {key: "attack4"},],
+            frameRate: 6,
+            repeat: 0
+        });
+    }
+
     dragon.anims.play("dragonWalk");
     dragon.setScale(2.25);
     dragon.setCollideWorldBounds(true);
@@ -326,11 +335,15 @@ function createDragon(scene) {
     dragon.walkSpeed = 80;
     dragon.chargeSpeed = 300;
 
+    dragon.walkRange = 200;
+    dragon.hitDamage = 5;
+
     dragon.jumpRange = 500;
     dragon.jumpSpeedX = 350;
     dragon.jumpVelocityY = -800;
     dragon.jumpTargetX = 0;
     dragon.jumpDamageRadius = 200;
+    dragon.jumpDamage = 20;
 
     dragon.chargeCooldown = 4000;
     dragon.chargeDuration = 4000;
@@ -345,6 +358,7 @@ function createDragon(scene) {
     dragon.rest = false;
     dragon.jump = false;
     dragon.hasJumped = false;
+    dragon.hasDoneJumpDamage = false;
 
     scene.physics.add.collider(dragon, scene.groundLayer);
 
@@ -388,6 +402,7 @@ function dragonCharge(scene, dragon, player, time) {
         dragon.state = "jump";
         dragon.jumpTargetX = player.x;
         dragon.hasJumped = false;
+        dragon.hasDoneJumpDamage = false;
         dragonFacePlayer(dragon, player);
         return;
     }
@@ -433,9 +448,48 @@ function dragonJump(scene, dragon, time) {
 
     if (dragon.body.blocked.down && dragon.hasJumped && dragon.body.velocity.y === 0) {
         dragon.setVelocityX(0);
+
+        if (!dragon.hasDoneJumpDamage) {
+            dragon.hasDoneJumpDamage = true;
+            dragonSplashDamage(scene, dragon);
+            dragonLandingPuff(scene, dragon);
+        }
+
         dragon.state = "rest";
         dragon.restEndTime = time + dragon.restTime;
     }
+}
+
+function dragonSplashDamage(scene, dragon) {
+    let player = scene.my.sprite.player;
+
+    let distnace = Phaser.Math.Distance.Between(dragon.x, dragon.y, player.x, player.y);
+
+    if (distnace <= dragon.jumpDamageRadius) {
+        scene.playerHealth -= dragon.jumpDamage;
+        scene.my.sounds.hurtSound.play();
+    }
+}
+
+function dragonLandingPuff(scene, dragon) {
+    let puff = scene.add.particles(dragon.x, dragon.y + dragon.displayHeight / 2, "kenny-particles", {
+        frame: ["smoke_03.png", "smoke_09.png"],
+        random: true,
+        scale: { start: 0.2, end: 0.4 },
+        lifespan: 500,
+        speed: { min: 80, max: 150 },
+        gravityY: -200,
+        quantity: 10
+    });
+
+    // chatgpt
+    scene.time.delayedCall(200, () => {
+        puff.destroy();
+    });
+    // end chatgpt
+}
+
+function dragonAttack(scene, dragon, player, time) {
 }
 
 // function that will make dragon face player
