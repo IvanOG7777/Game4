@@ -113,6 +113,8 @@ class Load extends Phaser.Scene {
         this.load.audio("loseSound", "qbertapply-falled-sound-effect-278635.mp3");
         this.load.audio("healthPickUp", "freesound_community-item-pick-up-38258.mp3");
         this.load.audio("dragonStomp", "dragon-studio-footstep-rustling-499643.mp3");
+        this.load.audio("dragonBite", "freesound_community-monster-bite-44538.mp3");
+        this.load.audio("dragonGroundImpact", "universfield-ground-impact-352053.mp3");
 
         this.load.audio("music1", "1. Echoes of Valhalla.ogg");
         this.load.audio("music2", "2. Northern Lights .ogg");

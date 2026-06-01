@@ -336,7 +336,12 @@ function createDragon(scene) {
     dragon.chargeSpeed = 300;
 
     dragon.walkRange = 200;
-    dragon.hitDamage = 5;
+    dragon.attackRange = 120;
+    dragon.attackDamage = 5;
+    dragon.attackDuration = 1000;
+    dragon.attackEndTime = 0;
+    dragon.nextAttackTime = 0;
+    dragon.attackCooldown = 1500;
 
     dragon.jumpRange = 500;
     dragon.jumpSpeedX = 350;
@@ -359,6 +364,8 @@ function createDragon(scene) {
     dragon.jump = false;
     dragon.hasJumped = false;
     dragon.hasDoneJumpDamage = false;
+    dragon.hasDoneAttackDamage = false;
+    dragon.wasInAir = false;
 
     scene.physics.add.collider(dragon, scene.groundLayer);
 
@@ -368,7 +375,17 @@ function createDragon(scene) {
 function dragonWalk(scene, dragon, player, time) {
     playDragonStomps(scene);
 
+    let distance = Phaser.Math.Distance.Between(dragon.x, dragon.y, player.x, player.y);
+    dragonFacePlayer(dragon, player);
     dragon.setVelocityX(dragon.walkSpeed * dragon.direction);
+
+    if (distance <= dragon.attackRange && time >= dragon.nextAttackTime) {
+        dragon.state = "attack";
+        dragon.attackEndTime = time + dragon.attackDuration;
+        dragon.hasDoneAttackDamage = false;
+        dragon.setVelocityX(0);
+        return;
+    }
 
     if (dragon.body.blocked.left) {
         dragon.direction = 1;
@@ -431,6 +448,7 @@ function dragonJump(scene, dragon, time) {
 
     if (!dragon.hasJumped) {
         dragon.hasJumped = true;
+        dragon.wasInAir = true;
 
         dragon.anims.play("dragonJump");
         dragon.setVelocityY(dragon.jumpVelocityY);
@@ -451,6 +469,7 @@ function dragonJump(scene, dragon, time) {
 
         if (!dragon.hasDoneJumpDamage) {
             dragon.hasDoneJumpDamage = true;
+            scene.my.sounds.dragonImpact.play();
             dragonSplashDamage(scene, dragon);
             dragonLandingPuff(scene, dragon);
         }
@@ -490,6 +509,33 @@ function dragonLandingPuff(scene, dragon) {
 }
 
 function dragonAttack(scene, dragon, player, time) {
+    dragon.setVelocityX(0);
+    scene.my.sounds.dragonStomp.stop();
+
+    playDragonAnimation(dragon, "dragonAttack");
+    dragonFacePlayer(dragon, player);
+
+    if (!dragon.anims.currentAnim?.key !== "dragonAttack") {
+        dragon.anims.play("dragonAttack", true);
+    }
+
+    let distance = Phaser.Math.Distance.Between(dragon.x, dragon.y, player.x, player.y);
+    
+    if (!dragon.hasDoneAttackDamage) {
+        dragon.hasDoneAttackDamage = true;
+
+        if (distance <= dragon.attackRange) {
+            scene.my.sounds.dragonBite.play();
+            scene.playerHealth -= dragon.attackDamage;
+            scene.my.sounds.hurtSound.play();
+        }
+
+        if (distance > dragon.attackRange) {
+            dragon.state = "walk";
+            dragon.nextAttackTime = time + dragon.attackCooldown;
+            dragon.hasDoneAttackDamage = false;
+        }
+    }
 }
 
 // function that will make dragon face player
@@ -531,6 +577,8 @@ function dragonActions(scene, dragon, time) {
     }
     else if (dragon.state == "rest") {
         dragonRest(scene, dragon, player, time);
+    } else if (dragon.state == "attack") {
+        dragonAttack(scene, dragon, player, time);
     }
 }
 

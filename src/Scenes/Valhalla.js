@@ -50,6 +50,8 @@ class Valhalla extends Phaser.Scene {
             loop: true,
             volume: 0.5,
         });
+        my.sounds.dragonBite = this.sound.add("dragonBite");
+        my.sounds.dragonImpact = this.sound.add("dragonGroundImpact");
 
         my.sounds.music;
 
