@@ -338,8 +338,6 @@ function createDragon(scene) {
     dragon.walkRange = 200;
     dragon.attackRange = 120;
     dragon.attackDamage = 5;
-    dragon.attackDuration = 1000;
-    dragon.attackCooldown = 1500;
 
     dragon.jumpRange = 500;
     dragon.jumpSpeedX = 350;
@@ -351,10 +349,25 @@ function createDragon(scene) {
     dragon.headDamage = 20;
 
     dragon.chargeCooldown = 4000;
+    dragon.minChargeCooldown = 4000;
+
     dragon.chargeDuration = 4000;
+    dragon.minChargeDuration = 4000;
+
     dragon.restTime = 3000;
+    dragon.minRestTime = 1000;
+
+
     dragon.biteCoolTime = 1000;
+    dragon.minBiteCoolTime = 300;
+
     dragon.headHitCooldown = 500;
+
+    dragon.attackDuration = 1000;
+    dragon.minAttackDuration = 500;
+
+    dragon.attackCooldown = 1500;
+    dragon.minAttackCooldown = 1500;
 
     dragon.nextChargeTime = 0;
     dragon.chargeEndTime = 0;
@@ -388,7 +401,7 @@ function dragonWalk(scene, dragon, player, time) {
 
     if (distance <= dragon.attackRange && time >= dragon.nextAttackTime) {
         dragon.state = "attack";
-        dragon.attackEndTime = time + dragon.attackDuration;
+        dragon.attackEndTime = time + dragonRandTimeValue(dragon.minAttackDuration, dragon.attackDuration);
         dragon.hasDoneAttackDamage = false;
         dragon.setVelocityX(0);
         return;
@@ -408,7 +421,7 @@ function dragonWalk(scene, dragon, player, time) {
 
     if (time >= dragon.nextChargeTime) {
         dragon.state = "charge";
-        dragon.chargeEndTime = time + dragon.chargeDuration;
+        dragon.chargeEndTime = time + dragonRandTimeValue(dragon.minChargeDuration, dragon.chargeDuration);;
 
         dragonFacePlayer(dragon, player);
     }
@@ -433,7 +446,7 @@ function dragonCharge(scene, dragon, player, time) {
 
     if (time >= dragon.chargeEndTime) {
         dragon.state = "rest";
-        dragon.restEndTime = time + dragon.restTime;
+        dragon.restEndTime = time + dragonRandTimeValue(dragon.minRestTime, dragon.restTime);
     }
 }
 
@@ -448,7 +461,7 @@ function dragonRest(scene, dragon, player, time) {
 
     if (time >= dragon.restEndTime) {
         dragon.state = "walk";
-        dragon.nextChargeTime = time + dragon.chargeCooldown;
+        dragon.nextChargeTime = time + dragonRandTimeValue(dragon.minChargeCooldown, dragon.chargeCooldown);
     }
 }
 
@@ -484,7 +497,7 @@ function dragonJump(scene, dragon, time) {
         }
 
         dragon.state = "rest";
-        dragon.restEndTime = time + dragon.restTime;
+        dragon.restEndTime = time + dragonRandTimeValue(dragon.minRestTime, dragon.restTime);
     }
 }
 
@@ -527,7 +540,7 @@ function dragonAttack(scene, dragon, player, time) {
 
     if (distance > dragon.attackRange) {
         dragon.state = "walk";
-        dragon.nextAttackTime = time + dragon.attackCooldown;
+        dragon.nextAttackTime = time + dragonRandTimeValue(dragon.minAttackCooldown, dragon.attackCooldown);
         dragon.hasDoneAttackDamage = false;
         return;
     }
@@ -543,7 +556,7 @@ function dragonAttack(scene, dragon, player, time) {
         scene.playerHealth -= dragon.attackDamage;
         scene.my.sounds.hurtSound.play();
 
-        dragon.nextBiteTime = time + dragon.biteCoolTime;
+        dragon.nextBiteTime = time + dragonRandTimeValue(dragon.minBiteCoolTime, dragon.biteCoolTime);
     }
 }
 
@@ -590,6 +603,10 @@ function playDragonStomps(scene) {
     if (!scene.my.sounds.dragonStomp.isPlaying) {
         scene.my.sounds.dragonStomp.play();
     }
+}
+
+function dragonRandTimeValue(min, max) {
+    return Phaser.Math.Between(min, max);
 }
 
 function dragonActions(scene, dragon, time) {
