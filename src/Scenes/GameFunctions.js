@@ -325,7 +325,7 @@ function createDragon(scene) {
     dragon.setCollideWorldBounds(true);
     dragon.setFlipX(true);
 
-    dragon.health = 300;
+    dragon.health = 1000;
     dragon.speed = 80;
     dragon.direction = -1;
 
@@ -339,8 +339,6 @@ function createDragon(scene) {
     dragon.attackRange = 120;
     dragon.attackDamage = 5;
     dragon.attackDuration = 1000;
-    dragon.attackEndTime = 0;
-    dragon.nextAttackTime = 0;
     dragon.attackCooldown = 1500;
 
     dragon.jumpRange = 500;
@@ -350,15 +348,21 @@ function createDragon(scene) {
     dragon.jumpDamageRadius = 200;
     dragon.jumpDamage = 20;
 
+    dragon.headDamage = 20;
+
     dragon.chargeCooldown = 4000;
     dragon.chargeDuration = 4000;
     dragon.restTime = 3000;
     dragon.biteCoolTime = 1000;
+    dragon.headHitCooldown = 500;
 
     dragon.nextChargeTime = 0;
     dragon.chargeEndTime = 0;
     dragon.restEndTime = 0;
     dragon.nextBiteTime = 0;
+    dragon.nextHeadHit = 0;
+    dragon.attackEndTime = 0;
+    dragon.nextAttackTime = 0;
 
     dragon.chargePlayer = false;
     dragon.wander = true;
@@ -439,6 +443,8 @@ function dragonRest(scene, dragon, player, time) {
 
     playDragonAnimation(dragon, "dragonRest");
     dragonFacePlayer(dragon, player);
+
+    hitDragonHead(scene, dragon, player, time);
 
     if (time >= dragon.restEndTime) {
         dragon.state = "walk";
@@ -538,6 +544,26 @@ function dragonAttack(scene, dragon, player, time) {
         scene.my.sounds.hurtSound.play();
 
         dragon.nextBiteTime = time + dragon.biteCoolTime;
+    }
+}
+
+function hitDragonHead(scene, dragon, player, time) {
+
+    if (time < dragon.nextHeadHit) return;
+
+    let playerBottom = player.y + player.displayHeight / 2;
+    let dragonTop = dragon.y - dragon.displayHeight / 2;
+
+    let isNearHead = Math.abs(playerBottom - dragonTop) < 20;
+    let isPlayerFalling = player.body.velocity.y > 0;
+    let isClose = Math.abs(player.x - dragon.x) < dragon.displayWidth / 2;
+
+    if (isNearHead && isPlayerFalling && isClose) {
+        dragon.health -= dragon.headDamage;
+        dragon.nextHeadHit = time + dragon.headHitCooldown;
+        player.setVelocityY(-500);
+
+        console.log("Dragon health:", dragon.health);
     }
 }
 
