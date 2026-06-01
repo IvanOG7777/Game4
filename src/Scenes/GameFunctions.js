@@ -316,7 +316,7 @@ function createDragon(scene) {
             key: "dragonAttack",
             frames: [{key: "attack1"}, {key: "attack2"}, {key: "attack3"}, {key: "attack4"},],
             frameRate: 6,
-            repeat: 0
+            repeat: -1
         });
     }
 
@@ -353,9 +353,12 @@ function createDragon(scene) {
     dragon.chargeCooldown = 4000;
     dragon.chargeDuration = 4000;
     dragon.restTime = 3000;
+    dragon.biteCoolTime = 1000;
+
     dragon.nextChargeTime = 0;
     dragon.chargeEndTime = 0;
     dragon.restEndTime = 0;
+    dragon.nextBiteTime = 0;
 
     dragon.chargePlayer = false;
     dragon.wander = true;
@@ -513,28 +516,28 @@ function dragonAttack(scene, dragon, player, time) {
     scene.my.sounds.dragonStomp.stop();
 
     playDragonAnimation(dragon, "dragonAttack");
-    dragonFacePlayer(dragon, player);
-
-    if (!dragon.anims.currentAnim?.key !== "dragonAttack") {
-        dragon.anims.play("dragonAttack", true);
-    }
 
     let distance = Phaser.Math.Distance.Between(dragon.x, dragon.y, player.x, player.y);
+
+    if (distance > dragon.attackRange) {
+        dragon.state = "walk";
+        dragon.nextAttackTime = time + dragon.attackCooldown;
+        dragon.hasDoneAttackDamage = false;
+        return;
+    }
+
+    dragonFacePlayer(dragon, player);
+
+    if (dragon.anims.currentAnim?.key !== "dragonAttack") {
+        dragon.anims.play("dragonAttack", true);
+    }
     
-    if (!dragon.hasDoneAttackDamage) {
-        dragon.hasDoneAttackDamage = true;
+    if (time >= dragon.nextBiteTime) {
+        scene.my.sounds.dragonBite.play();
+        scene.playerHealth -= dragon.attackDamage;
+        scene.my.sounds.hurtSound.play();
 
-        if (distance <= dragon.attackRange) {
-            scene.my.sounds.dragonBite.play();
-            scene.playerHealth -= dragon.attackDamage;
-            scene.my.sounds.hurtSound.play();
-        }
-
-        if (distance > dragon.attackRange) {
-            dragon.state = "walk";
-            dragon.nextAttackTime = time + dragon.attackCooldown;
-            dragon.hasDoneAttackDamage = false;
-        }
+        dragon.nextBiteTime = time + dragon.biteCoolTime;
     }
 }
 
