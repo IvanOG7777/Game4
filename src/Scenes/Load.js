@@ -80,6 +80,13 @@ class Load extends Phaser.Scene {
         this.load.image("jump3", "jump3.png");
         this.load.image("jump4", "jump4.png");
 
+        // Death pngs
+        this.load.image("death1", "death1.png");
+        this.load.image("death2", "death2.png");
+        this.load.image("death3", "death3.png");
+        this.load.image("death4", "death4.png");
+        this.load.image("death5", "death5.png");
+
 
         // In game items
         this.load.image("redPotion", "wizardPotion.png");
@@ -115,6 +122,7 @@ class Load extends Phaser.Scene {
         this.load.audio("dragonStomp", "dragon-studio-footstep-rustling-499643.mp3");
         this.load.audio("dragonBite", "freesound_community-monster-bite-44538.mp3");
         this.load.audio("dragonGroundImpact", "universfield-ground-impact-352053.mp3");
+        this.load.audio("dragonHurt", "homemade_sfx-slap-hurt-pain-sound-effect-262618.mp3");
 
         this.load.audio("music1", "1. Echoes of Valhalla.ogg");
         this.load.audio("music2", "2. Northern Lights .ogg");

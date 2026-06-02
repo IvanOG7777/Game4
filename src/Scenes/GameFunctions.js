@@ -320,12 +320,22 @@ function createDragon(scene) {
         });
     }
 
+     if (!scene.anims.exists("dragonDeath")) {
+        scene.anims.create({
+            key: "dragonDeath",
+            frames: [{key: "death1"}, {key: "death2"}, {key: "death3"}, {key: "death4"}, {key: "death5"}],
+            frameRate: 6,
+            repeat: 0
+        });
+    }
+
+
     dragon.anims.play("dragonWalk");
-    dragon.setScale(2.25);
+    dragon.setScale(1.6);
     dragon.setCollideWorldBounds(true);
     dragon.setFlipX(true);
 
-    dragon.health = 1000;
+    dragon.health = 50;
     dragon.speed = 80;
     dragon.direction = -1;
 
@@ -343,7 +353,7 @@ function createDragon(scene) {
     dragon.jumpSpeedX = 350;
     dragon.jumpVelocityY = -800;
     dragon.jumpTargetX = 0;
-    dragon.jumpDamageRadius = 200;
+    dragon.jumpDamageRadius = 175;
     dragon.jumpDamage = 20;
 
     dragon.headDamage = 20;
@@ -376,6 +386,7 @@ function createDragon(scene) {
     dragon.nextHeadHit = 0;
     dragon.attackEndTime = 0;
     dragon.nextAttackTime = 0;
+    dragon.returnTime = 0;
 
     dragon.chargePlayer = false;
     dragon.wander = true;
@@ -386,6 +397,7 @@ function createDragon(scene) {
     dragon.hasDoneJumpDamage = false;
     dragon.hasDoneAttackDamage = false;
     dragon.wasInAir = false;
+    dragon.deathStarted = false;
 
     scene.physics.add.collider(dragon, scene.groundLayer);
 
@@ -395,11 +407,16 @@ function createDragon(scene) {
 function dragonWalk(scene, dragon, player, time) {
     playDragonStomps(scene);
 
-    let distance = Phaser.Math.Distance.Between(dragon.x, dragon.y, player.x, player.y);
+    let distanceX = Math.abs(dragon.x - player.x);
+    let distanceY = Math.abs(dragon.y - player.y);
+
+    let playerCloseX = distanceX <= dragon.attackRange;
+    let playerCloseY = distanceY <= 50;
+
     dragonFacePlayer(dragon, player);
     dragon.setVelocityX(dragon.walkSpeed * dragon.direction);
 
-    if (distance <= dragon.attackRange && time >= dragon.nextAttackTime) {
+    if (playerCloseX && playerCloseY && time >= dragon.nextAttackTime) {
         dragon.state = "attack";
         dragon.attackEndTime = time + dragonRandTimeValue(dragon.minAttackDuration, dragon.attackDuration);
         dragon.hasDoneAttackDamage = false;
@@ -437,6 +454,13 @@ function dragonCharge(scene, dragon, player, time) {
 
     if (distanceX <= dragon.jumpRange && dragon.body.blocked.down) {
         dragon.state = "jump";
+        dragon.body.checkCollision.up = false;
+        let playerHightDifference = dragon.y - player.y;
+        if (playerHightDifference > 200) {
+            dragon.newJumpVelocityY = -1200;
+        } else {
+            dragon.newJumpVelocityY = -1200;
+        }
         dragon.jumpTargetX = player.x;
         dragon.hasJumped = false;
         dragon.hasDoneJumpDamage = false;
@@ -473,7 +497,7 @@ function dragonJump(scene, dragon, time) {
         dragon.wasInAir = true;
 
         dragon.anims.play("dragonJump");
-        dragon.setVelocityY(dragon.jumpVelocityY);
+        dragon.setVelocityY(dragon.newJumpVelocityY);
 
         if (dragon.jumpTargetX < dragon.x) {
             dragon.setVelocityX(-dragon.jumpSpeedX);
@@ -487,6 +511,8 @@ function dragonJump(scene, dragon, time) {
     }
 
     if (dragon.body.blocked.down && dragon.hasJumped && dragon.body.velocity.y === 0) {
+        dragon.body.checkCollision.up = true;
+
         dragon.setVelocityX(0);
 
         if (!dragon.hasDoneJumpDamage) {
@@ -536,9 +562,13 @@ function dragonAttack(scene, dragon, player, time) {
 
     playDragonAnimation(dragon, "dragonAttack");
 
-    let distance = Phaser.Math.Distance.Between(dragon.x, dragon.y, player.x, player.y);
+    let distanceX = Math.abs(dragon.x - player.x);
+    let distanceY = Math.abs(dragon.y - player.y);
 
-    if (distance > dragon.attackRange) {
+    let playerCloseX = distanceX <= dragon.attackRange;
+    let playerCloseY = distanceY <= 50;
+
+    if (!playerCloseX || !playerCloseY) {
         dragon.state = "walk";
         dragon.nextAttackTime = time + dragonRandTimeValue(dragon.minAttackCooldown, dragon.attackCooldown);
         dragon.hasDoneAttackDamage = false;
@@ -572,11 +602,32 @@ function hitDragonHead(scene, dragon, player, time) {
     let isClose = Math.abs(player.x - dragon.x) < dragon.displayWidth / 2;
 
     if (isNearHead && isPlayerFalling && isClose) {
+        scene.my.sounds.dragonHurt.play();
         dragon.health -= dragon.headDamage;
         dragon.nextHeadHit = time + dragon.headHitCooldown;
         player.setVelocityY(-500);
 
         console.log("Dragon health:", dragon.health);
+        
+        if (dragon.health <= 0) {
+            dragon.state = "death"
+            dragon.deathStarted = false;
+        }
+    }
+}
+
+function dragonDeath(scene, dragon, time) {
+    dragon.setVelocityX(0);
+    scene.my.sounds.dragonStomp.stop();
+
+    if (!dragon.deathStarted) {
+         dragon.deathStarted = true;
+        dragon.anims.play("dragonDeath");
+        dragon.returnTime = time + 1500;
+    }
+    
+    if (time >= dragon.returnTime) {
+        scene.scene.start("platformerScene");
     }
 }
 
@@ -625,6 +676,8 @@ function dragonActions(scene, dragon, time) {
         dragonRest(scene, dragon, player, time);
     } else if (dragon.state == "attack") {
         dragonAttack(scene, dragon, player, time);
+    } else if (dragon.state == "death") {
+        dragonDeath(scene, dragon, time);
     }
 }
 

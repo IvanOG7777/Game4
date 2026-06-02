@@ -745,6 +745,11 @@ class Overworld extends Phaser.Scene {
                             })
                         }
 
+                        enemy.setTint(0xff0000);
+                        this.time.delayedCall(5000, () => {
+                            enemy.clearTint();
+                        });
+
                         if (enemy.health <= 0) {
                             if (enemy.chomp) {
                                 my.sounds.chestDeath.play();

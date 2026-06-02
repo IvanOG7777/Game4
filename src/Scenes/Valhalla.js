@@ -52,6 +52,7 @@ class Valhalla extends Phaser.Scene {
         });
         my.sounds.dragonBite = this.sound.add("dragonBite");
         my.sounds.dragonImpact = this.sound.add("dragonGroundImpact");
+        my.sounds.dragonHurt = this.sound.add("dragonHurt");
 
         my.sounds.music;
 
@@ -61,7 +62,6 @@ class Valhalla extends Phaser.Scene {
             "music2",
             "music3",
             "music4",
-            "music5"
         ];
         let randomMusic = Phaser.Utils.Array.GetRandom(this.musicKeys);
         // end of chat
