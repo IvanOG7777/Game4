@@ -139,6 +139,18 @@ class Valhalla extends Phaser.Scene {
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
+        this.health = this.add.text(100, 50, "Health: " + this.playerHealth,
+            {
+                fontSize: "30px",
+                fill: "#fd0000"
+            }).setOrigin(0.5).setScrollFactor(0);
+
+        this.dragonHealth = this.add.text(155, 100, "Dragon Health: " + this.playerHealth,
+            {
+                fontSize: "30px",
+                fill: "#fd0000"
+            }).setOrigin(0.5).setScrollFactor(0);    
+
     }
 
     update(time, deltaTime) {
@@ -204,6 +216,9 @@ class Valhalla extends Phaser.Scene {
             if (this.dragon.alive == true) {
                 dragonActions(this, this.dragon, time);
             }
+            
+            this.health.setText("Health: " + Math.max(0, Math.ceil(this.playerHealth)));
+            this.dragonHealth.setText("Dragon Health: " + Math.max(0, Math.ceil(this.dragon.health)));
         }
     }
 }

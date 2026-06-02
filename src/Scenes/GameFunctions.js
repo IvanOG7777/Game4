@@ -388,6 +388,8 @@ function createDragon(scene) {
     dragon.nextAttackTime = 0;
     dragon.returnTime = 0;
 
+    dragon.knockbackDistance = 500;
+
     dragon.chargePlayer = false;
     dragon.wander = true;
     dragon.alive = true;
@@ -521,7 +523,6 @@ function dragonJump(scene, dragon, time) {
             dragonSplashDamage(scene, dragon);
             dragonLandingPuff(scene, dragon);
         }
-
         dragon.state = "rest";
         dragon.restEndTime = time + dragonRandTimeValue(dragon.minRestTime, dragon.restTime);
     }
@@ -533,6 +534,17 @@ function dragonSplashDamage(scene, dragon) {
     let distnace = Phaser.Math.Distance.Between(dragon.x, dragon.y, player.x, player.y);
 
     if (distnace <= dragon.jumpDamageRadius) {
+        let direction;
+
+        if (player.x > dragon.x) {
+            direction = 1;
+        } else {
+            direction = -1;
+        }
+        
+        player.setVelocityX(direction * 1000);
+        player.setVelocityY(-1000);
+
         scene.playerHealth -= dragon.jumpDamage;
         scene.my.sounds.hurtSound.play();
     }
@@ -623,10 +635,11 @@ function dragonDeath(scene, dragon, time) {
     if (!dragon.deathStarted) {
          dragon.deathStarted = true;
         dragon.anims.play("dragonDeath");
-        dragon.returnTime = time + 1500;
+        dragon.returnTime = time + 2000;
     }
     
     if (time >= dragon.returnTime) {
+        scene.my.sounds.music.stop();
         scene.scene.start("platformerScene");
     }
 }

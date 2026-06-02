@@ -77,6 +77,8 @@ class Overworld extends Phaser.Scene {
         // Create a new tilemap game object which uses 18x18 pixel tiles, and is
         // 45 tiles wide and 25 tiles tall.
 
+        this.resetGameStateVariables();
+
         let my = this.my;
 
         // Make sounds object
@@ -496,6 +498,11 @@ class Overworld extends Phaser.Scene {
 
         this.endText = null;
         this.resetText = null;
+
+        this.gameOver = false;
+        this.gameWon = false;
+        this.nextWaterDamageTime = 0;
+        this.hitSound = null;
 
         if (this.my?.sounds?.music) {
             this.my.sounds.music.stop();
