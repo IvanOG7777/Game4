@@ -11,15 +11,10 @@ class Valhalla extends Phaser.Scene {
         this.SCALE = 1.75;
 
         this.playerHealth = 100;
-        this.playerHitDamage = 5;
-        this.currentWeapon;
-        this.nextPlayerHitTime = 0;
-        this.playerHitSpeed = 1000;
-        this.heartArray = [];
-
-        this.gameOver = false;
-        this.gameWon = false;
         this.playerAlive = true;
+
+        this.endText = null;
+        this.resetText = null;
     }
 
     init() {
@@ -31,7 +26,35 @@ class Valhalla extends Phaser.Scene {
         this.PARTICLE_VELOCITY = 50;
     }
 
+     showEndScreen(message, color) {
+        if (!this.endText) {
+            this.endText = this.add.text(this.game.config.width / 2, this.game.config.height / 2 - 200, message, {
+                fontSize: "50px",
+                fill: color,
+            }).setOrigin(0.5).setScrollFactor(0);
+        }
+
+        if (!this.resetText) {
+            this.resetText = this.add.text(this.game.config.width / 2, this.game.config.height / 2 - 100, "Press R to Restart", {
+                fontSize: "50px",
+                fill: color,
+            }).setOrigin(0.5).setScrollFactor(0);
+        }
+
+    }
+
+    resetValhallaGameStateVariables() {
+        this.playerHealth = 100;
+        this.playerAlive = true;
+        this.endText = null;
+        this.resetText = null;
+    }
+
     create() {
+
+        this.resetValhallaGameStateVariables();
+
+        this.rKey = this.input.keyboard.addKey('R');
 
         let my = this.my;
 
@@ -219,6 +242,11 @@ class Valhalla extends Phaser.Scene {
             
             this.health.setText("Health: " + Math.max(0, Math.ceil(this.playerHealth)));
             this.dragonHealth.setText("Dragon Health: " + Math.max(0, Math.ceil(this.dragon.health)));
+        } else if (this.playerAlive == false) {
+            if (Phaser.Input.Keyboard.JustDown(this.rKey)) {
+                this.scene.start("initScene");
+            }
+            return;
         }
     }
 }

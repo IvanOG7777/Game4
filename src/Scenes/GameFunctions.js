@@ -335,7 +335,7 @@ function createDragon(scene) {
     dragon.setCollideWorldBounds(true);
     dragon.setFlipX(true);
 
-    dragon.health = 50;
+    dragon.health = 200;
     dragon.speed = 80;
     dragon.direction = -1;
 
@@ -547,6 +547,7 @@ function dragonSplashDamage(scene, dragon) {
 
         scene.playerHealth -= dragon.jumpDamage;
         scene.my.sounds.hurtSound.play();
+        playerDeathCheck(scene);
     }
 }
 
@@ -597,6 +598,7 @@ function dragonAttack(scene, dragon, player, time) {
         scene.my.sounds.dragonBite.play();
         scene.playerHealth -= dragon.attackDamage;
         scene.my.sounds.hurtSound.play();
+        playerDeathCheck(scene);
 
         dragon.nextBiteTime = time + dragonRandTimeValue(dragon.minBiteCoolTime, dragon.biteCoolTime);
     }
@@ -692,6 +694,32 @@ function dragonActions(scene, dragon, time) {
     } else if (dragon.state == "death") {
         dragonDeath(scene, dragon, time);
     }
+}
+
+function playerDeathCheck(scene) {
+    if (scene.playerHealth > 0 || scene.playerAlive == false) {
+        return;
+    }
+
+    scene.playerHealth = 0;
+    scene.health.setText("Health: 0");
+
+    scene.playerAlive = false;
+
+    scene.my.sounds.footSteps.stop();
+    scene.my.sounds.dragonStomp.stop();
+    scene.my.sounds.music.stop();
+
+    scene.my.sounds.deathSound.play();
+    scene.my.sounds.loseSound.play();
+
+    scene.my.sprite.player.setVisible(false);
+    scene.my.sprite.player.body.enable = false;
+    scene.my.sprite.player.setVelocity(0, 0);
+
+    scene.cameras.main.stopFollow();
+
+    scene.showEndScreen("YOU DIED", "#ff0000");
 }
 
 function collides(a, b) {

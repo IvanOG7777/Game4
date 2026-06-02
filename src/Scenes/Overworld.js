@@ -473,7 +473,7 @@ class Overworld extends Phaser.Scene {
             }).setOrigin(0.5).setScrollFactor(0);
     }
 
-    // functiom to reset to init
+    // function to reset to init
     resetGameStateVariables() {
         this.playerHealth = 100;
         this.playerHitDamage = 5;
@@ -679,6 +679,7 @@ class Overworld extends Phaser.Scene {
                     this.heldWeapon.x = my.sprite.player.x - 25;
                     this.heldWeapon.y = my.sprite.player.y + 5;
                 } else {
+                    // facing right
                     this.heldWeapon.x = my.sprite.player.x + 25;
                     this.heldWeapon.y = my.sprite.player.y + 5;
                 }
@@ -702,17 +703,24 @@ class Overworld extends Phaser.Scene {
                     this.hitSound.play();
                 }
 
+                // loop through all enemies
                 for (let enemy of this.enemies) {
+                    // calculate distance between each enemy
                     let distance = Phaser.Math.Distance.Between(my.sprite.player.x, my.sprite.player.y, enemy.x, enemy.y);
 
+                    // if we are within 100 pixels
                     if (distance < 100) {
+                        // we deal damage to enemy
                         enemy.health -= this.playerHitDamage;
 
+                        // if enemy isnt a chest
                         if (!enemy.chomp) {
+                            // calculate the knock back distance
                             let knockback = new Phaser.Math.Vector2(enemy.x - my.sprite.player.x, enemy.y - my.sprite.player.y);
 
-                            knockback.normalize();
+                            knockback.normalize(); // normalize it
 
+                            // depending on current equiped weapon the knockback disntace will be larger
                             if (this.currentWeapon == "dagger") {
                                 this.knockbackDistance = 100;
                             }
@@ -725,15 +733,19 @@ class Overworld extends Phaser.Scene {
                                 this.knockbackDistance = 200;
                             }
 
+                            // get current enemies x/y values
                             let startX = enemy.x;
                             let startY = enemy.y;
 
+                            // calculate where they should land
                             let newXPosition = enemy.x + knockback.x * this.knockbackDistance;
                             let newYPosition = enemy.y + knockback.y * 10;
 
+                            // max x and y height
                             let peakX = (startX + newXPosition) / 2;
                             let peakY = startY - 100;
 
+                            // animate them to move bck using a tweeen
                             this.tweens.add({
                                 targets: enemy,
                                 x: peakX,
@@ -752,17 +764,16 @@ class Overworld extends Phaser.Scene {
                             })
                         }
 
-                        enemy.setTint(0xff0000);
-                        this.time.delayedCall(5000, () => {
-                            enemy.clearTint();
-                        });
-
+                        // if enemy is dead
                         if (enemy.health <= 0) {
+                            // if its a chest
                             if (enemy.chomp) {
+                                // Do chest death animations and sounds
                                 my.sounds.chestDeath.play();
                                 enemy.chomp.stop();
                                 enemy.chomp.destroy();
 
+                                // drop a heart where the chest was
                                 let heart = this.heartArray.find(heart => heart.respectiveChest === enemy);
                                 if (heart && heart.active) {
                                     heart.x = enemy.x;
@@ -770,10 +781,11 @@ class Overworld extends Phaser.Scene {
                                     heart.setVisible(true);
                                 }
                             } else {
-
+                                // just pay regular death sound
                                 my.sounds.enemyDeath.play();
                             }
 
+                            // add a cross where the enemy has died
                             let deathCross = this.add.sprite(enemy.x, enemy.y, "deathCross");
 
                             deathCross.setScale(2.0);
@@ -797,6 +809,7 @@ class Overworld extends Phaser.Scene {
 
                 let distToHeart = Phaser.Math.Distance.Between(my.sprite.player.x, my.sprite.player.y, heart.x, heart.y);
 
+                // Distance to pick up heart and change player health
                 if (distToHeart < 40) {
                     my.sounds.healthPickUp.play();
                     this.playerHealth = Math.min(100, this.playerHealth + heart.giveHealth);
@@ -806,10 +819,11 @@ class Overworld extends Phaser.Scene {
                 }
             }
 
-            // filter out dead hears
+            // filter out dead hearts
             this.heartArray = this.heartArray.filter(heart => heart.active);
 
 
+            // call the enemy functions
             enemyMovement(this, this.evilWizardArray);
             enemyMovement(this, this.orcArray);
             enemyMelee(this, this.evilWizardArray);
@@ -827,12 +841,15 @@ class Overworld extends Phaser.Scene {
                 // get distance from player to chest
                 let distanceFromChest = Phaser.Math.Distance.Between(my.sprite.player.x, my.sprite.player.y, chest.x, chest.y);
 
+                // if distnace is smaller than 200 pixels and isnt open
                 if (distanceFromChest < 200 && !chest.opened) {
+                    // do the chest attack animations
                     chest.opened = true;
                     chest.chomp.play();
                     chest.anims.play("chestAttack");
                 }
-
+                
+                // if player is damn near on top of chest chest deals damage
                 if (chest.opened && distanceFromChest < 50 && time >= chest.nextChompTime) {
                     this.playerHealth -= 0.5;
                     this.health.setText("Health: " + Math.ceil(this.playerHealth));
@@ -840,6 +857,7 @@ class Overworld extends Phaser.Scene {
                     this.my.sounds.hurtSound.play()
                 }
 
+                // if farther stop animation and damage
                 if (distanceFromChest > 50 && chest.opened) {
                     chest.opened = false;
                     chest.chomp.stop();
@@ -850,7 +868,7 @@ class Overworld extends Phaser.Scene {
             }
 
             if (this.playerHealth <= 0) {
-
+                // Stop things in overworld
                 this.health.setText("Health: 0");
                 this.gameOver = true;
                 this.my.sounds.footSteps.stop();
@@ -863,10 +881,13 @@ class Overworld extends Phaser.Scene {
                 my.vfx.walking.stop();
                 my.sounds.music.stop();
                 my.sounds.loseSound.play();
+
+                // send to the dragon valhalla scene
                 this.scene.start("valhallaScene");
                 return;
             }
 
+            // if player has collected all keys and coins they win
             if (this.keysCollected >= this.keysToCollect && this.coinsCollected >= this.coinsToCollect) {
                 this.playerAlive = false;
                 my.vfx.walking.stop();
