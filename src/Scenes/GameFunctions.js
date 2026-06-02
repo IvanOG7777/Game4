@@ -19,16 +19,21 @@ function moveRandom(scene, enemy) {
     enemy.setFlipX(enemy.wanderDirection < 0); // if (-1) flip left else flip back to right (1)
 }
 
+
+// function to move an enemy in the current passed enemy array 
 function enemyMovement(scene, enemyArray) {
+    // for each enemy
     for (let enemy of enemyArray) {
+        // calculate disntace to player
         let distanceX = scene.my.sprite.player.x - enemy.x;
         let playerX = scene.my.sprite.player.x
-        let direction = 1;
+        let direction = 1; // get their direction
 
         let absDistanceX = Math.abs(distanceX);
 
         let totalDistance = Phaser.Math.Distance.Between(enemy.x, enemy.y, scene.my.sprite.player.x, scene.my.sprite.player.y);
 
+        // total distance disntace checkers for melee, shooting, chasing, and wandering
         if (totalDistance <= enemy.meleeDistance) {
             enemy.attack = true;
         } else if (totalDistance <= enemy.followDistance) {
@@ -38,14 +43,17 @@ function enemyMovement(scene, enemyArray) {
         } else {
             enemy.wander = true;
         }
-
+        // stop enemt movement if its attacking (melee)
         if (enemy.attack == true) {
             enemy.setVelocityX(0);
             direction *= -1;
         }
 
+        // if enemy is chasing
         if (enemy.chase == true) {
+            // if distance x is greater than the stop distance
             if (absDistanceX > enemy.stopDistance) {
+                // check where the player is to the right or left of enemy and flip direction
                 if (distanceX > 0) {
                     enemy.setVelocityX(enemy.speed);
                     enemy.setFlipX(false);
@@ -58,23 +66,31 @@ function enemyMovement(scene, enemyArray) {
             }
         }
 
+        // if enemy can shoot
         if (enemy.shoot == true) {
+            // stop movement
             enemy.setVelocityX(0);
+            // check where the player is to the right or left of enemy and flip direction
             if (distanceX > 0) {
                 enemy.setFlipX(false);
             } else {
                 enemy.setFlipX(true);
             }
+            // shoot at the player
             enemyShoot(scene, enemy);
         }
 
+        // if its wander is true
         if (enemy.wander == true) {
-            moveRandom(scene, enemy);
+            moveRandom(scene, enemy); // move around
         }
 
+        // if enemy is supposed to locked in a location
         if (enemy.locked) {
+            // clamp the x axis of the enemy
             enemy.x = Phaser.Math.Clamp(enemy.x, enemy.minX, enemy.maxX);
 
+            // move enemy within its bounds
             if (enemy.x <= enemy.minX && enemy.body.velocity.x < 0) {
                 enemy.setVelocityX(enemy.speed);
                 enemy.wanderDirection = 1;
@@ -86,6 +102,7 @@ function enemyMovement(scene, enemyArray) {
             }
         }
 
+        // reset the enemy variables
         enemy.wander = false;
         enemy.chase = false;
         enemy.attack = false;
@@ -93,6 +110,7 @@ function enemyMovement(scene, enemyArray) {
     }
 }
 
+// function for enemy to shoot at the player
 function enemyShoot(scene, enemy) {
     let currentTime = scene.time.now; // get current this time
 
@@ -100,18 +118,22 @@ function enemyShoot(scene, enemy) {
         return;
     }
 
+    // get player x/y coordinates
     let playerX = scene.my.sprite.player.x
     let playerY = scene.my.sprite.player.y;
 
+    // calculates distance from player
     let distanceX = Math.abs(playerX - enemy.x);
     let distanceY = playerY - enemy.y;
 
+    // create a potion for the wizzard
     let potion = scene.physics.add.sprite(enemy.x, enemy.y, "redPotion");
     potion.setScale(2);
     potion.body.allowGravity = false;
     potion.isDead = false;
     scene.my.sounds.potionThrow.play();
 
+    // change direction if player is left or right of enemy
     if (playerX > enemy.x) {
         potion.direction = 1;
     } else {
@@ -138,9 +160,12 @@ function enemyShoot(scene, enemy) {
     enemy.nextShootTime = currentTime + enemy.shootDelay;
 }
 
+// function to move move the postion
 function moveProjectile(scene, deltaTime) {
+    // for each potion in the potion array
     for (let projectile of scene.evilWizardPotionArray) {
 
+        // if potion is lower than the the world bounds kill it
         if (projectile.y >= scene.physics.world.bounds.height) {
             scene.my.sounds.potionImpact.play();
             projectile.isDead = true;
@@ -148,6 +173,8 @@ function moveProjectile(scene, deltaTime) {
             continue;
         }
 
+        // check if it collides with player
+        // deal damage and destroy it
         if (collides(scene.my.sprite.player, projectile) == true) {
             scene.my.sounds.hurtSound.play();
             scene.my.sounds.potionImpact.play();
@@ -158,24 +185,30 @@ function moveProjectile(scene, deltaTime) {
             continue;
         }
 
+        // else keep moveing it
         projectile.x += projectile.direction * projectile.velX * (deltaTime / 1000);
         projectile.y += projectile.velY * (deltaTime / 1000);
 
         projectile.velY += 700 * (deltaTime / 1000);
     }
 
-    scene.evilWizardPotionArray = scene.evilWizardPotionArray.filter(projectile => !projectile.isDead);
+    scene.evilWizardPotionArray = scene.evilWizardPotionArray.filter(projectile => !projectile.isDead); // filter out dead potions
 }
 
-function enemyMelee(scene, enemyArray) {
-    let currentTime = scene.time.now;
 
+// function for the enemy to melee
+function enemyMelee(scene, enemyArray) {
+    let currentTime = scene.time.now; // grab current time
+
+    // for each enemy in the passed enemy array
     for (let enemy of enemyArray) {
 
+        // if its not time for the enemy to hit skip it
         if (currentTime < enemy.nextMeleeTime) {
             continue;
         }
 
+        // else check if its colliding with player and deal damage
         if (collides(scene.my.sprite.player, enemy)) {
             enemy.sound.play();
             scene.playerHealth -= enemy.meleeDamage;
@@ -187,10 +220,15 @@ function enemyMelee(scene, enemyArray) {
     }
 }
 
+// functio to seperate the enemies from each other
+// avoids them clumping up in one big enemy
 function seperateEnemies(enemyArray) {
+    // distnace to push them off eachother
     let pushAmount = 3;
     let minDistance = 60;
 
+    // run a check from one enemy on every other enmy and move them
+    // lowkey kinda bad because if there hella enemies it will make preformace really bad but whatever
     for (let enemyA of enemyArray) {
         for (let enemyB of enemyArray) {
 
@@ -218,13 +256,18 @@ function seperateEnemies(enemyArray) {
 function specificSpawnEnemies(scene, mobType, sections, amount) {
     let enemies = []
 
+    // loop through each valid section
     for (let section of sections) {
+        // loop through how many enemies i want in section
         for (let i = 0; i < amount; i++) {
+            // grab the x/y values from sections
             let x = Phaser.Math.Between(section.x1, section.x2);
             let y = Phaser.Math.Between(section.y1, section.y2);
 
+            // create enemy at new x/y positon
             let enemy = scene.physics.add.sprite(x, y, mobType);
 
+            // if section is locked pass it to enemy
             enemy.locked = section.locked;
 
             enemy.setScale(2.25);
@@ -236,6 +279,7 @@ function specificSpawnEnemies(scene, mobType, sections, amount) {
                 enemy.maxX = Math.max(section.x1, section.x2);
             }
 
+            // set enemies variables
             enemy.isDead = false;
             enemy.wander = false;
             enemy.chase = false;
@@ -246,6 +290,7 @@ function specificSpawnEnemies(scene, mobType, sections, amount) {
             enemy.nextWanderChange = 0;
             enemy.nextShootTime = 0;
 
+            // set the wizard variables
             if (mobType == "evilWizard") {
                 enemy.health = 100;
                 enemy.speed = 80;
@@ -260,19 +305,20 @@ function specificSpawnEnemies(scene, mobType, sections, amount) {
                 enemy.meleeDelay = scene.evilWizardMeleeDelay;
             }
 
+            // add collidsion and pus to array
             scene.physics.add.collider(enemy, scene.groundLayer);
 
             enemies.push(enemy);
         }
     }
-
     return enemies;
 }
 
+// function used to create a dragon
 function createDragon(scene) {
-    let dragon = scene.physics.add.sprite(1000, 400, "walk1");
+    let dragon = scene.physics.add.sprite(1000, 400, "walk1"); // start dragon off in its first walk png
 
-
+    // create animations for each dragon state
     if (!scene.anims.exists("dragonWalk")) {
         scene.anims.create({
             key: "dragonWalk",
@@ -282,7 +328,6 @@ function createDragon(scene) {
 
         });
     }
-
 
     if (!scene.anims.exists("dragonRun")) {
         scene.anims.create({
@@ -329,12 +374,13 @@ function createDragon(scene) {
         });
     }
 
-
+    // init dragon with walking
     dragon.anims.play("dragonWalk");
     dragon.setScale(1.6);
     dragon.setCollideWorldBounds(true);
     dragon.setFlipX(true);
 
+    // set dragon variables
     dragon.health = 200;
     dragon.speed = 80;
     dragon.direction = -1;
@@ -401,31 +447,38 @@ function createDragon(scene) {
     dragon.wasInAir = false;
     dragon.deathStarted = false;
 
+    // add collison
     scene.physics.add.collider(dragon, scene.groundLayer);
 
     return dragon;
 }
 
+// function to make the dragon walk
 function dragonWalk(scene, dragon, player, time) {
-    playDragonStomps(scene);
+    playDragonStomps(scene); // call the dragon walk sound effect
 
+    // calculate distance to player
     let distanceX = Math.abs(dragon.x - player.x);
     let distanceY = Math.abs(dragon.y - player.y);
 
+    // calculate if dragon is close to player
     let playerCloseX = distanceX <= dragon.attackRange;
     let playerCloseY = distanceY <= 50;
 
+    // call face player function to keep dragon faacing the player
     dragonFacePlayer(dragon, player);
-    dragon.setVelocityX(dragon.walkSpeed * dragon.direction);
+    dragon.setVelocityX(dragon.walkSpeed * dragon.direction); // sets its velocity to walking speed
 
+    // if player is close to dragon and we are with the dragon attack time
     if (playerCloseX && playerCloseY && time >= dragon.nextAttackTime) {
-        dragon.state = "attack";
-        dragon.attackEndTime = time + dragonRandTimeValue(dragon.minAttackDuration, dragon.attackDuration);
-        dragon.hasDoneAttackDamage = false;
-        dragon.setVelocityX(0);
+        dragon.state = "attack"; // chage draon state
+        dragon.attackEndTime = time + dragonRandTimeValue(dragon.minAttackDuration, dragon.attackDuration); // add random time to its end attack time
+        dragon.hasDoneAttackDamage = false; // reset its attack variable
+        dragon.setVelocityX(0); // stop moving
         return;
     }
 
+    // flip left or right
     if (dragon.body.blocked.left) {
         dragon.direction = 1;
         dragon.setFlipX(false);
@@ -436,8 +489,10 @@ function dragonWalk(scene, dragon, player, time) {
         dragon.setFlipX(true);
     }
 
+    // play its walking animation
     playDragonAnimation(dragon, "dragonWalk");
 
+    // if time its greater than its next charge time change state and add to timer
     if (time >= dragon.nextChargeTime) {
         dragon.state = "charge";
         dragon.chargeEndTime = time + dragonRandTimeValue(dragon.minChargeDuration, dragon.chargeDuration);;
@@ -446,61 +501,79 @@ function dragonWalk(scene, dragon, player, time) {
     }
 }
 
+// function to charge at player
 function dragonCharge(scene, dragon, player, time) {
-    playDragonStomps(scene);
+    playDragonStomps(scene); // play stop sound effect
 
+    // change its velocity to charging
     dragon.setVelocityX(dragon.chargeSpeed * dragon.direction);
-    playDragonAnimation(dragon, "dragonRun");
+    playDragonAnimation(dragon, "dragonRun"); // play its charge animation
 
+    // calculate distance to player
     let distanceX = Math.abs(player.x - dragon.x);
 
+    // If player is within jumping distance and the dragon is standing on the ground
+    // change state from chargin to sumping
     if (distanceX <= dragon.jumpRange && dragon.body.blocked.down) {
         dragon.state = "jump";
-        dragon.body.checkCollision.up = false;
-        let playerHightDifference = dragon.y - player.y;
+        dragon.body.checkCollision.up = false; // take off the collison check while jumping
+        let playerHightDifference = dragon.y - player.y; // if player is way higher than the dragon
+        // give more y velocity jump
         if (playerHightDifference > 200) {
             dragon.newJumpVelocityY = -1200;
         } else {
             dragon.newJumpVelocityY = -1200;
         }
+
+        // set the dragon target to player position
         dragon.jumpTargetX = player.x;
+        // reset variables
         dragon.hasJumped = false;
         dragon.hasDoneJumpDamage = false;
         dragonFacePlayer(dragon, player);
         return;
     }
 
+    // if time is greater than its end time
     if (time >= dragon.chargeEndTime) {
-        dragon.state = "rest";
-        dragon.restEndTime = time + dragonRandTimeValue(dragon.minRestTime, dragon.restTime);
+        dragon.state = "rest"; // change state to resting
+        dragon.restEndTime = time + dragonRandTimeValue(dragon.minRestTime, dragon.restTime); // add to timer
     }
 }
 
+// function to rest dragon
 function dragonRest(scene, dragon, player, time) {
-    dragon.setVelocityX(0);
-    scene.my.sounds.dragonStomp.stop();
+    dragon.setVelocityX(0); // stop movemen
+    scene.my.sounds.dragonStomp.stop(); // stop the stomp sound
 
-    playDragonAnimation(dragon, "dragonRest");
+    playDragonAnimation(dragon, "dragonRest"); // play rest animation
     dragonFacePlayer(dragon, player);
 
+    // allow player to hit the head of dragon
     hitDragonHead(scene, dragon, player, time);
 
+    // if timer is greated than the end of its rest time
     if (time >= dragon.restEndTime) {
-        dragon.state = "walk";
-        dragon.nextChargeTime = time + dragonRandTimeValue(dragon.minChargeCooldown, dragon.chargeCooldown);
+        dragon.state = "walk"; // change state to walk
+        dragon.nextChargeTime = time + dragonRandTimeValue(dragon.minChargeCooldown, dragon.chargeCooldown); // add to next timer
     }
 }
 
+// function to allow dragon to jump
 function dragonJump(scene, dragon, time) {
-    scene.my.sounds.dragonStomp.stop();
+    scene.my.sounds.dragonStomp.stop(); // stop the stomp sound
 
+    // if it hasnt jumped
     if (!dragon.hasJumped) {
+        // set jump variables
         dragon.hasJumped = true;
         dragon.wasInAir = true;
 
+        // play jump animation
         dragon.anims.play("dragonJump");
-        dragon.setVelocityY(dragon.newJumpVelocityY);
+        dragon.setVelocityY(dragon.newJumpVelocityY); // sets its jump velocity
 
+        // if the target is lef or right of dragon change direction of jump
         if (dragon.jumpTargetX < dragon.x) {
             dragon.setVelocityX(-dragon.jumpSpeedX);
         } else {
@@ -512,45 +585,55 @@ function dragonJump(scene, dragon, time) {
         dragon.setTexture("jump4");
     }
 
+    // if dragon is on floor and has jumped and its velocyt y is 0
     if (dragon.body.blocked.down && dragon.hasJumped && dragon.body.velocity.y === 0) {
-        dragon.body.checkCollision.up = true;
+        dragon.body.checkCollision.up = true; // turn its collison back on
 
+        // stop movement
         dragon.setVelocityX(0);
 
+        // its hasnt done damge
         if (!dragon.hasDoneJumpDamage) {
-            dragon.hasDoneJumpDamage = true;
-            scene.my.sounds.dragonImpact.play();
-            dragonSplashDamage(scene, dragon);
-            dragonLandingPuff(scene, dragon);
+            dragon.hasDoneJumpDamage = true; // set damage to true
+            scene.my.sounds.dragonImpact.play(); // play imact sound
+            dragonSplashDamage(scene, dragon); // call the splash damage function
+            dragonLandingPuff(scene, dragon); // call the puff function
         }
-        dragon.state = "rest";
-        dragon.restEndTime = time + dragonRandTimeValue(dragon.minRestTime, dragon.restTime);
+        dragon.state = "rest"; // set state to rest
+        dragon.restEndTime = time + dragonRandTimeValue(dragon.minRestTime, dragon.restTime); // add to next time
     }
 }
 
+// function to deal splash damage to player
 function dragonSplashDamage(scene, dragon) {
     let player = scene.my.sprite.player;
-
+    
+    // calculate distance to player
     let distnace = Phaser.Math.Distance.Between(dragon.x, dragon.y, player.x, player.y);
 
+    // if distance is within the jump radius
     if (distnace <= dragon.jumpDamageRadius) {
         let direction;
 
+        // calcualte direction where player should be going
         if (player.x > dragon.x) {
             direction = 1;
         } else {
             direction = -1;
         }
         
+        // set player velocity and direction
         player.setVelocityX(direction * 1000);
         player.setVelocityY(-1000);
 
+        // hurt the player
         scene.playerHealth -= dragon.jumpDamage;
         scene.my.sounds.hurtSound.play();
-        playerDeathCheck(scene);
+        playerDeathCheck(scene); // check if player is dead
     }
 }
 
+// functio to play the puff around dragon
 function dragonLandingPuff(scene, dragon) {
     let puff = scene.add.particles(dragon.x, dragon.y + dragon.displayHeight / 2, "kenny-particles", {
         frame: ["smoke_03.png", "smoke_09.png"],
@@ -569,78 +652,96 @@ function dragonLandingPuff(scene, dragon) {
     // end chatgpt
 }
 
+// function for dragon to do regular attack
 function dragonAttack(scene, dragon, player, time) {
+    // stop its movement
     dragon.setVelocityX(0);
-    scene.my.sounds.dragonStomp.stop();
+    scene.my.sounds.dragonStomp.stop(); // stop stomp noise
 
-    playDragonAnimation(dragon, "dragonAttack");
+    playDragonAnimation(dragon, "dragonAttack"); // play attack animation
 
+    // calculate disntce between player and dragon
     let distanceX = Math.abs(dragon.x - player.x);
     let distanceY = Math.abs(dragon.y - player.y);
 
     let playerCloseX = distanceX <= dragon.attackRange;
     let playerCloseY = distanceY <= 50;
 
+    // if player isnt close to dragon
     if (!playerCloseX || !playerCloseY) {
-        dragon.state = "walk";
-        dragon.nextAttackTime = time + dragonRandTimeValue(dragon.minAttackCooldown, dragon.attackCooldown);
+        dragon.state = "walk"; // change state back to walk
+        dragon.nextAttackTime = time + dragonRandTimeValue(dragon.minAttackCooldown, dragon.attackCooldown); // add to end timer
         dragon.hasDoneAttackDamage = false;
         return;
     }
 
-    dragonFacePlayer(dragon, player);
+    dragonFacePlayer(dragon, player); // face dragon to player
 
+    // if animation hasnt played play it
     if (dragon.anims.currentAnim?.key !== "dragonAttack") {
         dragon.anims.play("dragonAttack", true);
     }
     
+    // if bite time is less than the current timer
     if (time >= dragon.nextBiteTime) {
+        // play the bite animation and sounds and hurt player
         scene.my.sounds.dragonBite.play();
         scene.playerHealth -= dragon.attackDamage;
         scene.my.sounds.hurtSound.play();
         playerDeathCheck(scene);
 
-        dragon.nextBiteTime = time + dragonRandTimeValue(dragon.minBiteCoolTime, dragon.biteCoolTime);
+        dragon.nextBiteTime = time + dragonRandTimeValue(dragon.minBiteCoolTime, dragon.biteCoolTime); // add to next timer
     }
 }
 
+// functio to jump on dragon head
 function hitDragonHead(scene, dragon, player, time) {
 
+    // if time is less than the next allowd head hit timer
     if (time < dragon.nextHeadHit) return;
 
+    // calcuilate bottom of player and top if dragon
     let playerBottom = player.y + player.displayHeight / 2;
     let dragonTop = dragon.y - dragon.displayHeight / 2;
 
+    // calcualte true/false variables depending on where player is to dragon
     let isNearHead = Math.abs(playerBottom - dragonTop) < 20;
     let isPlayerFalling = player.body.velocity.y > 0;
     let isClose = Math.abs(player.x - dragon.x) < dragon.displayWidth / 2;
 
+    // if all are true
     if (isNearHead && isPlayerFalling && isClose) {
+        // hurt the dragon
         scene.my.sounds.dragonHurt.play();
         dragon.health -= dragon.headDamage;
         dragon.nextHeadHit = time + dragon.headHitCooldown;
         player.setVelocityY(-500);
-
-        console.log("Dragon health:", dragon.health);
         
+        // if dragon health is equal or less than 0
         if (dragon.health <= 0) {
-            dragon.state = "death"
+            dragon.state = "death" // change state to death
             dragon.deathStarted = false;
         }
     }
 }
 
+// function for death of dragon
 function dragonDeath(scene, dragon, time) {
+    // stop movemnt and sounds
     dragon.setVelocityX(0);
     scene.my.sounds.dragonStomp.stop();
 
+    // if we havent started the death scene
     if (!dragon.deathStarted) {
-         dragon.deathStarted = true;
+        // change vairbale to true nad play the death animation
+        dragon.deathStarted = true;
         dragon.anims.play("dragonDeath");
-        dragon.returnTime = time + 2000;
+        dragon.returnTime = time + 2000; // time to wait before sending back to over world
     }
     
+    // if current time is return time or greater
     if (time >= dragon.returnTime) {
+        // send back to overworld
         scene.my.sounds.music.stop();
         scene.scene.start("platformerScene");
     }
@@ -670,11 +771,12 @@ function playDragonStomps(scene) {
         scene.my.sounds.dragonStomp.play();
     }
 }
-
+// function that just gets two random times
 function dragonRandTimeValue(min, max) {
     return Phaser.Math.Between(min, max);
 }
 
+// function that calls all the smaller functions depending on dragons current state
 function dragonActions(scene, dragon, time) {
     let player = scene.my.sprite.player;
 
@@ -696,11 +798,14 @@ function dragonActions(scene, dragon, time) {
     }
 }
 
+// function to check player is alive
 function playerDeathCheck(scene) {
+    // return if player is still alive
     if (scene.playerHealth > 0 || scene.playerAlive == false) {
         return;
     }
 
+    // else kill player
     scene.playerHealth = 0;
     scene.health.setText("Health: 0");
 
